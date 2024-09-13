@@ -1,0 +1,33 @@
+<!-- templates/explore.html -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alle Zitate</title>
+</head>
+<body>
+    <h1>Entdecke alle Zitate von Goethe</h1>
+    <ul>
+        {% for quote in quotes %}
+        <li>
+            <p>{{ quote.quote }}</p>
+            <p><em>— {{ quote.author }}</em></p>
+            <button onclick="likeQuote({{ quote.id }})">Like ({{ quote.likes }})</button>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+<script>
+    function likeQuote(quoteId) {
+        fetch(`/like/${quoteId}`, { method: 'POST' })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload(); // Reload the page to update the likes count
+                }
+            });
+    }
+</script>
+</html>
+
