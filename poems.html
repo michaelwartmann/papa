@@ -59,7 +59,7 @@
 
         async function fetchPoems() {
             try {
-                const response = await fetch('path/to/your/poems.csv'); // Replace with your CSV file path
+                const response = await fetch('poems.csv'); // Replace with your CSV file path
                 const data = await response.text();
                 const lines = data.split('\n');
 
