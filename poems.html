@@ -44,7 +44,6 @@
 
     <script>
         let poems = [];
-        let currentPoem = '';
 
         // Load poems from the CSV file
         async function loadPoems() {
@@ -54,9 +53,12 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.text();
-                poems = data.split('\n').map(line => {
-                    const [id, title, poem] = line.split(',');
-                    return { title: title.trim(), poem: poem.trim() };
+                const rows = data.split('\n').slice(1); // Skip the header row if present
+                poems = rows.map(line => {
+                    const columns = line.split(',');
+                    const title = columns[1] ? columns[1].trim() : 'Untitled';
+                    const poem = columns[2] ? columns[2].trim().replace(/<br\/>/g, '<br/>') : 'No content available.';
+                    return { title, poem };
                 }).filter(poem => poem.title && poem.poem);
                 if (poems.length === 0) {
                     throw new Error('CSV file is empty or improperly formatted.');
@@ -71,7 +73,7 @@
         // Display a random Goethe poem
         function showRandomPoem() {
             const randomIndex = Math.floor(Math.random() * poems.length);
-            currentPoem = poems[randomIndex];
+            const currentPoem = poems[randomIndex];
             document.getElementById('poemDisplay').innerHTML = `<strong>${currentPoem.title}</strong><br/><br/>${currentPoem.poem}`;
         }
 
