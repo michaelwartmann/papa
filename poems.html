@@ -60,20 +60,26 @@
         // Function to fetch poems from the CSV file and extract text within quotes
         async function fetchPoems() {
             try {
-                const response = await fetch('poems.csv'); // Replace with your actual CSV file path
+                const response = await fetch('path/to/your/poems.csv'); // Replace with your actual CSV file path
                 const data = await response.text();
                 const lines = data.split('\n');
 
-                lines.forEach(line => {
+                lines.forEach((line, index) => {
                     // Match text within quotes, keeping HTML formatting tags intact
                     const match = line.match(/"([^"]+)"/);
                     if (match) {
-                        // Push the formatted poem into the poems array
-                        poems.push(match[1]);
+                        const poemText = match[1];
+                        console.log(`Poem ${index + 1}:`, poemText); // Logs each extracted poem to help debug
+                        poems.push(poemText);
                     }
                 });
+
+                if (poems.length === 0) {
+                    console.log("No poems were extracted. Check the CSV format.");
+                }
             } catch (error) {
                 document.getElementById('reader').textContent = `Error loading poems: ${error.message}`;
+                console.error("Error fetching poems:", error);
             }
         }
 
