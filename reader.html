@@ -43,13 +43,26 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        .back-button {
+        .back-button, .skip-back-button {
             background-color: #6c757d;
             color: white;
         }
-        .next-button {
+        .next-button, .skip-forward-button {
             background-color: #007bff;
             color: white;
+        }
+        .page-jump {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            gap: 5px;
+        }
+        input[type="number"] {
+            width: 60px;
+            padding: 5px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
         }
         select {
             margin-top: 20px;
@@ -64,15 +77,22 @@
     <h1>Goethe Ebook Reader</h1>
     <select id="bookSelect" onchange="loadBook()">
         <option value="">Wähle ein Werk aus</option>
-        <option value="Faust I.txt">Faust I</option>
+        <option value="Faust I_processed.txt">Faust I</option>
         <!-- Add more options here for other processed texts -->
     </select>
 
     <div id="reader"></div>
 
     <div class="buttons">
+        <button class="skip-back-button" onclick="skipPages(-10)">⏮️ -10</button>
         <button class="back-button" onclick="previousPage()">Zurück</button>
         <button class="next-button" onclick="nextPage()">Weiter</button>
+        <button class="skip-forward-button" onclick="skipPages(10)">⏭️ +10</button>
+    </div>
+
+    <div class="page-jump">
+        <input type="number" id="pageNumber" min="1" placeholder="Seite">
+        <button onclick="goToPage()">Go</button>
     </div>
 
     <script>
@@ -121,6 +141,26 @@
             if (currentPage > 0) {
                 currentPage--;
                 displayPage();
+            }
+        }
+
+        function skipPages(amount) {
+            let newPage = currentPage + amount;
+            if (newPage < 0) newPage = 0;
+            if (newPage >= pages.length) newPage = pages.length - 1;
+            currentPage = newPage;
+            displayPage();
+        }
+
+        function goToPage() {
+            const pageNumber = document.getElementById('pageNumber').value;
+            const targetPage = parseInt(pageNumber, 10) - 1; // Convert to zero-indexed
+
+            if (!isNaN(targetPage) && targetPage >= 0 && targetPage < pages.length) {
+                currentPage = targetPage;
+                displayPage();
+            } else {
+                alert("Bitte eine gültige Seitenzahl eingeben.");
             }
         }
     </script>
