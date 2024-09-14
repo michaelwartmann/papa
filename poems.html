@@ -15,96 +15,7 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
         }
-        #poemDisplay {<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Goethe Gedichte</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
-            padding: 10px;
-        }
-        #poemDisplay {
-            max-width: 600px;
-            height: 60vh;
-            overflow-y: auto;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            background-color: #fff;
-            font-size: 14px;
-            line-height: 1.3;
-            white-space: pre-wrap;
-            text-align: left;
-        }
-        .button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Goethe Gedichte</h1>
-    <div id="poemDisplay">Ein Gedicht wird geladen...</div>
-    <button class="button" onclick="showRandomPoem()">Neues Gedicht</button>
-
-    <script>
-        let poems = [];
-
-        // Load poems from the CSV file
-        async function loadPoems() {
-            try {
-                const response = await fetch('goethe_poems.csv');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.text();
-                const rows = data.split('\n').slice(1); // Skip the header row if present
-                poems = rows.map(line => {
-                    const columns = line.split(',');
-                    const title = columns[1] ? columns[1].trim() : 'Untitled';
-                    const poem = columns.slice(2).join(',').trim();
-                    return { title, poem: poem.replace(/<br\/>/g, '<br/>') };
-                }).filter(poem => poem.title && poem.poem);
-                
-                if (poems.length === 0) {
-                    throw new Error('CSV file is empty or improperly formatted.');
-                }
-                showRandomPoem(); // Show a poem immediately upon loading
-            } catch (error) {
-                console.error('Fehler beim Laden der Gedichte:', error);
-                document.getElementById('poemDisplay').textContent = 'Gedichte konnten nicht geladen werden. Fehler: ' + error.message;
-            }
-        }
-
-        // Display a random Goethe poem
-        function showRandomPoem() {
-            const randomIndex = Math.floor(Math.random() * poems.length);
-            const currentPoem = poems[randomIndex];
-            document.getElementById('poemDisplay').innerHTML = `<strong>${currentPoem.title}</strong><br/><br/>${currentPoem.poem}`;
-        }
-
-        // Load poems when the page loads
-        loadPoems();
-    </script>
-</body>
-</html>
-
+        #quoteDisplay {
             margin: 20px;
             font-size: 24px;
             text-align: center;
@@ -128,48 +39,52 @@
 </head>
 <body>
     <h1>Goethe Gedichte</h1>
-    <div id="poemDisplay">Ein Gedicht wird geladen...</div>
-    <button class="button" onclick="showRandomPoem()">Neues Gedicht</button>
+    <div id="quoteDisplay">Ein Gedicht wird geladen...</div>
+    <button class="button" onclick="showRandomQuote()">Neues Gedicht</button>
 
     <script>
-        let poems = [];
+        let quotes = [];
+        let currentQuote = '';
+        let likedQuotes = new Set();
+        let showFavorites = false;
 
         // Load poems from the CSV file
-        async function loadPoems() {
+        async function loadQuotes() {
             try {
                 const response = await fetch('goethe_poems.csv');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 const data = await response.text();
-                const rows = data.split('\n').slice(1); // Skip the header row if present
-                poems = rows.map(line => {
-                    const columns = line.split(',');
-                    // Handling cases where data might be missing or improperly formatted
-                    const title = columns[1] ? columns[1].trim() : 'Untitled';
-                    const poem = columns.slice(2).join(',').trim(); // Handle commas within the poem content
-                    return { title, poem: poem.replace(/<br\/>/g, '<br/>') };
-                }).filter(poem => poem.title && poem.poem); // Filter out empty or improperly formatted entries
-                
-                if (poems.length === 0) {
+                quotes = data.split('\n').map(line => line.trim()).filter(line => line);
+                if (quotes.length === 0) {
                     throw new Error('CSV file is empty or improperly formatted.');
                 }
-                showRandomPoem(); // Show a poem immediately upon loading
+                showRandomQuote();
             } catch (error) {
                 console.error('Fehler beim Laden der Gedichte:', error);
-                document.getElementById('poemDisplay').textContent = 'Gedichte konnten nicht geladen werden. Fehler: ' + error.message;
+                document.getElementById('quoteDisplay').textContent = 'Gedichte konnten nicht geladen werden. Fehler: ' + error.message;
             }
         }
 
         // Display a random Goethe poem
-        function showRandomPoem() {
-            const randomIndex = Math.floor(Math.random() * poems.length);
-            const currentPoem = poems[randomIndex];
-            document.getElementById('poemDisplay').innerHTML = `<strong>${currentPoem.title}</strong><br/><br/>${currentPoem.poem}`;
+        function showRandomQuote() {
+            if (showFavorites) {
+                if (likedQuotes.size === 0) {
+                    document.getElementById('quoteDisplay').innerHTML = '<p>Keine Lieblingsgedichte vorhanden.</p>';
+                    return;
+                }
+                const randomIndex = Math.floor(Math.random() * likedQuotes.size);
+                currentQuote = Array.from(likedQuotes)[randomIndex];
+            } else {
+                const randomIndex = Math.floor(Math.random() * quotes.length);
+                currentQuote = quotes[randomIndex].replace(/["„“]/g, '').trim();
+            }
+            document.getElementById('quoteDisplay').innerHTML = currentQuote; // Use innerHTML to render HTML content
         }
 
         // Load poems when the page loads
-        loadPoems();
+        loadQuotes();
     </script>
 </body>
 </html>
