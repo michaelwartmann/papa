@@ -56,10 +56,12 @@
                 const rows = data.split('\n').slice(1); // Skip the header row if present
                 poems = rows.map(line => {
                     const columns = line.split(',');
+                    // Handling cases where data might be missing or improperly formatted
                     const title = columns[1] ? columns[1].trim() : 'Untitled';
-                    const poem = columns[2] ? columns[2].trim().replace(/<br\/>/g, '<br/>') : 'No content available.';
-                    return { title, poem };
-                }).filter(poem => poem.title && poem.poem);
+                    const poem = columns.slice(2).join(',').trim(); // Handle commas within the poem content
+                    return { title, poem: poem.replace(/<br\/>/g, '<br/>') };
+                }).filter(poem => poem.title && poem.poem); // Filter out empty or improperly formatted entries
+                
                 if (poems.length === 0) {
                     throw new Error('CSV file is empty or improperly formatted.');
                 }
