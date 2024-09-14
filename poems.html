@@ -1,84 +1,33 @@
-<!DOCTYPE html>
-<html lang="de">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gedichte</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
-            padding: 10px;
+// Load poems from the CSV file, splitting by quotes instead of line breaks
+async function loadPoems() {
+    try {
+        const response = await fetch('poems.csv'); // Update the file path as needed
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        #poemDisplay {
-            margin: 20px 0;
-            font-size: 14px;
-            text-align: left;
-            max-width: 95%;
-            border: 2px solid #000;
-            padding: 20px;
-            border-radius: 5px;
-            background-color: #fff;
-            overflow-y: auto;
-            max-height: 75vh; /* Increased height for better visibility */
-            word-wrap: break-word;
-            white-space: pre-wrap; /* Preserves formatting and line breaks */
-        }
-        .button {
-            padding: 10px 20px;
-            font-size: 14px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Gedichte</h1>
-    <div id="poemDisplay">Ein Gedicht wird geladen...</div>
-    <button class="button" onclick="showRandomPoem()">Neues Gedicht anzeigen</button>
+        const data = await response.text();
 
-    <script>
-        let poems = [];
-        let currentPoem = '';
-
-        // Load poems from the CSV file
-        async function loadPoems() {
-            try {
-                const response = await fetch('poems.csv'); // Update the file path as needed
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.text();
-                poems = data.split('\n').map(line => line.trim()).filter(line => line);
-                if (poems.length === 0) {
-                    throw new Error('CSV file is empty or improperly formatted.');
-                }
-                showRandomPoem(); // Show a poem immediately upon loading
-            } catch (error) {
-                console.error('Fehler beim Laden der Gedichte:', error);
-                document.getElementById('poemDisplay').textContent = 'Gedichte konnten nicht geladen werden. Fehler: ' + error.message;
-            }
+        // Split the text using double quotes, which enclose each poem
+        poems = data.split(/(?:"[^"]*"|[^,])+/)
+            .map(entry => entry.replace(/"/g, '').trim()) // Remove quotes and trim whitespace
+            .filter(entry => entry); // Remove empty entries
+        
+        if (poems.length === 0) {
+            throw new Error('CSV file is empty or improperly formatted.');
         }
+        showRandomPoem(); // Show a poem immediately upon loading
+    } catch (error) {
+        console.error('Fehler beim Laden der Gedichte:', error);
+        document.getElementById('poemDisplay').textContent = 'Gedichte konnten nicht geladen werden. Fehler: ' + error.message;
+    }
+}
 
-        // Display a random poem with proper HTML formatting
-        function showRandomPoem() {
-            const randomIndex = Math.floor(Math.random() * poems.length);
-            currentPoem = poems[randomIndex].replace(/["„“]/g, '').trim();
-            document.getElementById('poemDisplay').innerHTML = currentPoem; // Using innerHTML to render HTML formatting in the poems
-        }
+// Display a random poem with proper HTML formatting
+function showRandomPoem() {
+    const randomIndex = Math.floor(Math.random() * poems.length);
+    currentPoem = poems[randomIndex];
+    document.getElementById('poemDisplay').innerHTML = currentPoem; // Using innerHTML to render HTML formatting in the poems
+}
 
-        // Load poems when the page loads
-        loadPoems();
-    </script>
-</body>
-</html>
+// Load poems when the page loads
+loadPoems();
