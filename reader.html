@@ -19,7 +19,7 @@
         #reader {
             max-width: 600px;
             height: 60vh;
-            overflow: hidden;
+            overflow: auto;
             padding: 20px;
             border: 1px solid #ccc;
             border-radius: 8px;
@@ -53,7 +53,7 @@
         select {
             margin-top: 20px;
             padding: 10px;
-            font-size: 14px;
+            font-size: 16px;
             width: 100%;
             max-width: 600px;
         }
@@ -63,15 +63,11 @@
     <h1>Goethe Ebook Reader</h1>
     <select id="bookSelect" onchange="loadBook()">
         <option value="">Wähle ein Werk aus</option>
-        <option value="Egmont.txt">Egmont</option>
-        <option value="Faust I.txt">Faust I</option>
-        <option value="Faust II.txt">Faust II</option>
-        <option value="Hermann und Dorothea.txt">Hermann und Dorothea</option>
-        <option value="Iphigenie auf Tauris.txt">Iphigenie auf Tauris</option>
-        <option value="Reineke Fuchs.txt">Reineke Fuchs</option>
+        <option value="Egmont_preprocessed.txt">Egmont</option>
+        <!-- Add other works as needed -->
     </select>
 
-    <div id="reader"></div>
+    <div id="reader">Bitte wähle ein Werk aus, um es zu lesen.</div>
 
     <div class="buttons">
         <button class="back-button" onclick="previousPage()">Zurück</button>
@@ -97,34 +93,12 @@
                     throw new Error(`Fehler beim Laden des Buches: ${response.statusText}`);
                 }
                 const text = await response.text();
-                pages = paginateText(text, 2000); // Adjust the number for page size
+                pages = text.split('--- PAGE BREAK ---').map(page => page.trim()); // Split by PAGE BREAK markers
                 currentPage = 0;
                 displayPage();
             } catch (error) {
                 document.getElementById('reader').textContent = `Fehler beim Laden des Buches: ${error.message}`;
             }
-        }
-
-        function paginateText(text, maxLength) {
-            // Split the text into paragraphs based on double line breaks
-            const paragraphs = text.split(/\n\n/);
-            const pages = [];
-            let currentPage = "";
-
-            // Combine paragraphs until the maxLength is reached for each page
-            for (let paragraph of paragraphs) {
-                if ((currentPage + paragraph).length > maxLength) {
-                    pages.push(currentPage.trim());
-                    currentPage = paragraph + "\n\n";
-                } else {
-                    currentPage += paragraph + "\n\n";
-                }
-            }
-            if (currentPage) {
-                pages.push(currentPage.trim());
-            }
-
-            return pages;
         }
 
         function displayPage() {
