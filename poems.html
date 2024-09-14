@@ -53,7 +53,7 @@ html_content = """
         // Load poems from the CSV file
         async function loadPoems() {
             try {
-                const response = await fetch('goethe_poems_cleaned.csv');
+                const response = await fetch('goethe_poems.csv');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
