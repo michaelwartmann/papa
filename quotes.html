@@ -35,24 +35,12 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        .heart-button {
-            font-size: 24px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #ccc;
-            margin-top: 10px;
-        }
-        .heart-button.liked {
-            color: red; /* Change color to red when liked */
-        }
     </style>
 </head>
 <body>
     <h1>Goethe Zitate</h1>
     <div id="quoteDisplay">Ein Zitat wird geladen...</div> <!-- Placeholder for quotes -->
     <button class="button" onclick="showRandomQuote()">Neues Zitat</button> <!-- Button to fetch a new quote -->
-   
 
     <script>
         let quotes = [];
@@ -81,7 +69,6 @@
 
         // Display a random Goethe quote
         function showRandomQuote() {
-            resetHeart(); // Reset heart button on new quote
             if (showFavorites) {
                 if (likedQuotes.size === 0) {
                     document.getElementById('quoteDisplay').textContent = 'Keine Lieblingszitate vorhanden.';
@@ -94,41 +81,6 @@
                 currentQuote = quotes[randomIndex].replace(/["„“]/g, '').trim();
             }
             document.getElementById('quoteDisplay').textContent = currentQuote;
-            updateHeartButton();
-        }
-
-        // Toggle between showing all quotes and only favorite quotes
-        function toggleFavorites() {
-            showFavorites = !showFavorites;
-            showRandomQuote();
-        }
-
-        // Handle the heart button to like the current quote
-        function likeQuote() {
-            const heartButton = document.getElementById('heartButton');
-            if (likedQuotes.has(currentQuote)) {
-                likedQuotes.delete(currentQuote);
-                heartButton.classList.remove('liked');
-            } else {
-                likedQuotes.add(currentQuote);
-                heartButton.classList.add('liked');
-            }
-        }
-
-        // Reset the heart button to its default state
-        function resetHeart() {
-            const heartButton = document.getElementById('heartButton');
-            heartButton.classList.remove('liked');
-        }
-
-        // Update the heart button to reflect the current quote's like status
-        function updateHeartButton() {
-            const heartButton = document.getElementById('heartButton');
-            if (likedQuotes.has(currentQuote)) {
-                heartButton.classList.add('liked');
-            } else {
-                heartButton.classList.remove('liked');
-            }
         }
 
         // Load quotes when the page loads
