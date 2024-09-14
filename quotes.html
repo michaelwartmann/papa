@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Sets the viewport for responsive design -->
     <title>Goethe Zitate</title> <!-- Title of the webpage -->
     <style>
-        /* Basic styling for the body */
         body {
             display: flex;
             flex-direction: column;
@@ -34,45 +33,108 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 10px;
+        }
+        .dropdown {
+            margin-top: 10px;
+            padding: 10px;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
     <h1>Goethe Zitate</h1>
-    <div id="quoteDisplay">Hier wird ein Goethe-Zitat angezeigt.</div> <!-- Placeholder for quotes -->
+    <div id="quoteDisplay">Ein Zitat wird geladen...</div> <!-- Placeholder for quotes -->
     <button class="button" onclick="showRandomQuote()">Neues Zitat anzeigen</button> <!-- Button to fetch a new quote -->
+    <button class="button" onclick="toggleFavorites()">Nur Lieblingszitate anzeigen</button> <!-- Button to show favorite quotes -->
+    <button class="button" onclick="likeQuote()">Zitat mögen</button> <!-- Button to like the quote -->
+    
+    <!-- Dropdown for selecting the work of Goethe -->
+    <select id="workDropdown" class="dropdown">
+        <option value="">Wähle das Werk aus</option>
+        <option value="Faust I">Faust I</option>
+        <option value="Faust II">Faust II</option>
+        <option value="Iphigenie auf Tauris">Iphigenie auf Tauris</option>
+        <option value="Egmont">Egmont</option>
+        <option value="Reineke Fuchs">Reineke Fuchs</option>
+        <option value="Hermann und Dorothea">Hermann und Dorothea</option>
+    </select>
 
     <script>
         let quotes = [];
+        let currentQuote = '';
+        let favoriteQuotes = [];
+        let showFavorites = false;
 
         // Load quotes from the CSV file
         async function loadQuotes() {
             try {
-                const response = await fetch('goethequotes.csv'); // Assumes the CSV file is named 'goethequotes.csv'
+                const response = await fetch('goethequotes.csv');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const data = await response.text();
                 quotes = data.split('\n').map(line => line.trim()).filter(line => line);
+                if (quotes.length === 0) {
+                    throw new Error('CSV file is empty or improperly formatted.');
+                }
+                showRandomQuote(); // Show a quote immediately upon loading
             } catch (error) {
                 console.error('Fehler beim Laden der Zitate:', error);
-                document.getElementById('quoteDisplay').textContent = 'Zitate konnten nicht geladen werden.';
+                document.getElementById('quoteDisplay').textContent = 'Zitate konnten nicht geladen werden. Fehler: ' + error.message;
             }
         }
 
         // Display a random Goethe quote
         function showRandomQuote() {
-            if (quotes.length === 0) {
-                loadQuotes().then(() => {
-                    displayQuote();
-                });
+            if (showFavorites) {
+                if (favoriteQuotes.length === 0) {
+                    document.getElementById('quoteDisplay').textContent = 'Keine Lieblingszitate vorhanden.';
+                    return;
+                }
+                const randomIndex = Math.floor(Math.random() * favoriteQuotes.length);
+                displayQuote(favoriteQuotes[randomIndex]);
             } else {
-                displayQuote();
+                const randomIndex = Math.floor(Math.random() * quotes.length);
+                displayQuote(quotes[randomIndex]);
             }
         }
 
-        // Function to display a random quote
-        function displayQuote() {
-            const randomIndex = Math.floor(Math.random() * quotes.length);
-            document.getElementById('quoteDisplay').textContent = quotes[randomIndex];
+        // Function to display a quote by stripping unnecessary details
+        function displayQuote(quote) {
+            const parts = quote.split(',');
+            // Assuming the quote is the second part
+            currentQuote = parts[1].replace(/["„“]/g, '').trim();
+            document.getElementById('quoteDisplay').textContent = currentQuote;
+        }
+
+        // Toggle between showing all quotes and only favorite quotes
+        function toggleFavorites() {
+            showFavorites = !showFavorites;
+            showRandomQuote();
+        }
+
+        // Like the current quote and save it
+        function likeQuote() {
+            if (!currentQuote) return;
+
+            // Check if the quote is already marked as favorite
+            if (!favoriteQuotes.includes(currentQuote)) {
+                favoriteQuotes.push(currentQuote);
+                saveQuoteToCSV(currentQuote);
+                alert('Zitat wurde zu den Lieblingszitaten hinzugefügt.');
+            } else {
+                alert('Zitat ist bereits in den Lieblingszitaten.');
+            }
+        }
+
+        // Save the liked quote to the CSV (simulated as local storage save for now)
+        function saveQuoteToCSV(quote) {
+            // Since saving directly to a CSV isn't straightforward in a browser,
+            // this can be adapted to save to local storage or backend server if required.
+            const selectedWork = document.getElementById('workDropdown').value || 'Unbekannt';
+            console.log(`Saving quote: ${quote} from ${selectedWork}`);
+            // Future implementation: save to server or allow user download CSV
         }
 
         // Load quotes when the page loads
