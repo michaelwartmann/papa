@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de"> <!-- Specifies the language as German -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Goethe Ebook Reader</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            padding: 10px;
+        }
+        #reader {
+            max-width: 600px;
+            height: 60vh;
+            overflow: hidden;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+            font-size: 18px;
+            line-height: 1.5;
+            text-align: justify;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 600px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .back-button {
+            background-color: #6c757d;
+            color: white;
+        }
+        .next-button {
+            background-color: #007bff;
+            color: white;
+        }
+        select {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 16px;
+            width: 100%;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Goethe Ebook Reader</h1>
+    <select id="bookSelect" onchange="loadBook()">
+        <option value="">Wähle ein Werk aus</option>
+        <option value="Egmont.txt">Egmont</option>
+        <option value="Faust I.txt">Faust I</option>
+        <option value="Faust II.txt">Faust II</option>
+        <option value="Hermann und Dorothea.txt">Hermann und Dorothea</option>
+        <option value="Iphigenie auf Tauris.txt">Iphigenie auf Tauris</option>
+        <option value="Reineke Fuchs.txt">Reineke Fuchs</option>
+    </select>
+
+    <div id="reader">Bitte wähle ein Werk aus, um es zu lesen.</div>
+
+    <div class="buttons">
+        <button class="back-button" onclick="previousPage()">Zurück</button>
+        <button class="next-button" onclick="nextPage()">Weiter</button>
+    </div>
+
+    <script>
+        let currentPage = 0;
+        let pages = [];
+
+        async function loadBook() {
+            const bookSelect = document.getElementById('bookSelect');
+            const book = bookSelect.value;
+
+            if (!book) {
+                document.getElementById('reader').textContent = 'Bitte wähle ein Werk aus, um es zu lesen.';
+                return;
+            }
+
+            try {
+                const response = await fetch(book);
+                if (!response.ok) {
+                    throw new Error(`Fehler beim Laden des Buches: ${response.statusText}`);
+                }
+                const text = await response.text();
+                pages = paginateText(text, 1000); // Adjust the number for page size
+                currentPage = 0;
+                displayPage();
+            } catch (error) {
+                document.getElementById('reader').textContent = `Fehler beim Laden des Buches: ${error.message}`;
+            }
+        }
+
+        function paginateText(text, maxLength) {
+            // Split text into pages based on the specified maxLength
+            const regex = new RegExp(`(.{1,${maxLength}})(\\s|$)`, 'g');
+            return text.match(regex) || [];
+        }
+
+        function displayPage() {
+            if (pages.length === 0) {
+                document.getElementById('reader').textContent = 'Keine Seiten zu anzeigen.';
+            } else {
+                document.getElementById('reader').textContent = pages[currentPage];
+            }
+        }
+
+        function nextPage() {
+            if (currentPage < pages.length - 1) {
+                currentPage++;
+                displayPage();
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                displayPage();
+            }
+        }
+    </script>
+</body>
+</html>
