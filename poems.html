@@ -1,0 +1,96 @@
+# Creating the HTML content for displaying Goethe's poems in a similar manner as the quotes
+html_content = """
+<!DOCTYPE html>
+<html lang="de"> <!-- Specifies the language as German -->
+<head>
+    <meta charset="UTF-8"> <!-- Sets the character encoding to UTF-8 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Sets the viewport for responsive design -->
+    <title>Goethe Gedichte</title> <!-- Title of the webpage -->
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh; /* Full height of the viewport */
+            margin: 0; /* Removes default margin */
+            background-color: #f0f0f0; /* Light gray background */
+            font-family: Arial, sans-serif;
+        }
+        #poemDisplay {
+            margin: 20px;
+            font-size: 18px;
+            text-align: center;
+            max-width: 80%;
+            border: 2px solid #000;
+            padding: 20px;
+            border-radius: 5px;
+            background-color: #fff;
+            overflow: auto; /* Allows scrolling for long poems */
+            max-height: 60vh; /* Limits the height to avoid overflowing the screen */
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #007bff; /* Blue background */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Goethe Gedichte</h1>
+    <div id="poemDisplay">Ein Gedicht wird geladen...</div> <!-- Placeholder for poems -->
+    <button class="button" onclick="showRandomPoem()">Neues Gedicht</button> <!-- Button to fetch a new poem -->
+
+    <script>
+        let poems = [];
+        let currentPoem = '';
+
+        // Load poems from the CSV file
+        async function loadPoems() {
+            try {
+                const response = await fetch('goethe_poems_cleaned.csv');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.text();
+                const rows = data.split('\\n').slice(1); // Skip header row
+                poems = rows.map(row => {
+                    const cols = row.split(',');
+                    return cols[cols.length - 1].replace(/["„“]/g, '').trim(); // Assuming the poem is in the last column
+                }).filter(poem => poem);
+
+                if (poems.length === 0) {
+                    throw new Error('CSV file is empty or improperly formatted.');
+                }
+                showRandomPoem(); // Show a poem immediately upon loading
+            } catch (error) {
+                console.error('Fehler beim Laden der Gedichte:', error);
+                document.getElementById('poemDisplay').textContent = 'Gedichte konnten nicht geladen werden. Fehler: ' + error.message;
+            }
+        }
+
+        // Display a random Goethe poem
+        function showRandomPoem() {
+            const randomIndex = Math.floor(Math.random() * poems.length);
+            currentPoem = poems[randomIndex];
+            document.getElementById('poemDisplay').textContent = currentPoem;
+        }
+
+        // Load poems when the page loads
+        loadPoems();
+    </script>
+</body>
+</html>
+"""
+
+# Save the HTML content to a file
+html_file_path = "/mnt/data/goethe_poems_display.html"
+with open(html_file_path, "w", encoding="utf-8") as file:
+    file.write(html_content)
+
+html_file_path
