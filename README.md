@@ -6,9 +6,9 @@ A special website to celebrate and enjoy the works of Goethe, created as a birth
 
 ### 1. Goethe Quotes Page
 - **Displays random quotes** from Goethe’s works.
-- **Like Quotes:** Use the heart button (`❤️`) to mark quotes as favorites during the session.
-- **Favorites Filter:** Toggle to show only liked quotes.
-- **Session-Based:** All interactions are temporary and reset upon refreshing the page.
+
+- ### 1. Goethe Poems Page
+- **Displays random poems** from Goethe’s works.
 
 ### 2. Goethe Ebook Reader
 - **Read Goethe’s Works:** Select from a variety of Goethe’s text files, including "Faust I," "Egmont," and others.
@@ -24,13 +24,15 @@ A special website to celebrate and enjoy the works of Goethe, created as a birth
 2. **Using the Quotes Page:**
    - Access the quotes page to explore Goethe’s famous quotes.
    - Use the "Neues Zitat anzeigen" button to load a new quote.
-   - Click the heart button to like a quote.
-   - Toggle between all quotes and favorites using the "Nur Lieblingszitate anzeigen" button.
 
-3. **Using the Ebook Reader:**
+3. **Using the Quotes Page:**
+   - Access the quotes page to explore Goethe’s famous quotes.
+   - Use the "Neues Gedicht anzeigen" button to load a new quote.
+
+4. **Using the Ebook Reader:**
    - Open the ebook reader from the main page.
    - Select a work from the dropdown menu to start reading.
-   - Use the "Weiter" button to go to the next page and "Zurück" to go back.
+   - Use the "Weiter" buttons to go to the next page and "Zurück" to go back.
 
 ## **Setup and Customization**
 
@@ -51,4 +53,4 @@ A special website to celebrate and enjoy the works of Goethe, created as a birth
 ---
 
 ### **Author**
-- Created by Michael as a heartfelt gift for his dad's birthday.
+- Created by Michael as a gift for his dad's birthday.
