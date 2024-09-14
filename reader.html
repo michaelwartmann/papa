@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de"> <!-- Specifies the language as German -->
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -64,12 +64,8 @@
     <h1>Goethe Ebook Reader</h1>
     <select id="bookSelect" onchange="loadBook()">
         <option value="">Wähle ein Werk aus</option>
-        <option value="Egmont.txt">Egmont</option>
         <option value="Faust I.txt">Faust I</option>
-        <option value="Faust II.txt">Faust II</option>
-        <option value="Hermann und Dorothea.txt">Hermann und Dorothea</option>
-        <option value="Iphigenie auf Tauris.txt">Iphigenie auf Tauris</option>
-        <option value="Reineke Fuchs.txt">Reineke Fuchs</option>
+        <!-- Add more options here for other processed texts -->
     </select>
 
     <div id="reader">Bitte wähle ein Werk aus, um es zu lesen.</div>
@@ -98,7 +94,7 @@
                     throw new Error(`Fehler beim Laden des Buches: ${response.statusText}`);
                 }
                 const text = await response.text();
-                pages = refined_preprocess_text(text);
+                pages = text.split("<!-- Page ").slice(1).map(page => page.split("-->")[1].trim());
                 currentPage = 0;
                 displayPage();
             } catch (error) {
@@ -106,45 +102,11 @@
             }
         }
 
-        function refined_preprocess_text(text) {
-            // Keep formatting by preserving line breaks and avoiding excessive merging
-            import re;
-
-            // Clean the Project Gutenberg header/footer
-            const start_marker = "*** START OF THIS PROJECT GUTENBERG EBOOK";
-            const end_marker = "*** END OF THIS PROJECT GUTENBERG EBOOK";
-
-            if (text.includes(start_marker)) {
-                text = text.split(start_marker, 1)[1];
-            }
-            if (text.includes(end_marker)) {
-                text = text.split(end_marker, 1)[0];
-            }
-
-            const chunks = re.split(r'(\. |\? |\! |\n\n)', text);
-            const pages = [];
-            let current_page = "";
-            const max_length = 500;
-
-            for (const chunk of chunks) {
-                if (current_page.length + chunk.length > max_length) {
-                    pages.push(current_page.trim());
-                    current_page = chunk;
-                } else {
-                    current_page += chunk;
-                }
-            }
-            if (current_page.length > 0) {
-                pages.push(current_page.trim());
-            }
-            return pages;
-        }
-
         function displayPage() {
             if (pages.length === 0) {
                 document.getElementById('reader').textContent = 'Keine Seiten zu anzeigen.';
             } else {
-                document.getElementById('reader').textContent = pages[currentPage];
+                document.getElementById('reader').innerHTML = pages[currentPage];
             }
         }
 
