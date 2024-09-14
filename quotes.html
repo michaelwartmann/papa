@@ -64,7 +64,7 @@
         // Load quotes from the CSV file
         async function loadQuotes() {
             try {
-                const response = await fetch('goethequotes_cleaned.csv');
+                const response = await fetch('goethequotes.csv');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
