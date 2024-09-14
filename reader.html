@@ -97,7 +97,7 @@
                     throw new Error(`Fehler beim Laden des Buches: ${response.statusText}`);
                 }
                 const text = await response.text();
-                pages = paginateText(text, 1000); // Adjust the number for page size
+                pages = paginateText(text, 2000); // Adjust the number for page size
                 currentPage = 0;
                 displayPage();
             } catch (error) {
@@ -106,9 +106,25 @@
         }
 
         function paginateText(text, maxLength) {
-            // Split text into pages based on the specified maxLength
-            const regex = new RegExp(`(.{1,${maxLength}})(\\s|$)`, 'g');
-            return text.match(regex) || [];
+            // Split the text into paragraphs based on double line breaks
+            const paragraphs = text.split(/\n\n/);
+            const pages = [];
+            let currentPage = "";
+
+            // Combine paragraphs until the maxLength is reached for each page
+            for (let paragraph of paragraphs) {
+                if ((currentPage + paragraph).length > maxLength) {
+                    pages.push(currentPage.trim());
+                    currentPage = paragraph + "\n\n";
+                } else {
+                    currentPage += paragraph + "\n\n";
+                }
+            }
+            if (currentPage) {
+                pages.push(currentPage.trim());
+            }
+
+            return pages;
         }
 
         function displayPage() {
