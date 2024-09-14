@@ -57,15 +57,18 @@
     <script>
         let poems = [];
 
+        // Function to fetch poems from the CSV file and extract text within quotes
         async function fetchPoems() {
             try {
-                const response = await fetch('poems.csv'); // Replace with your CSV file path
+                const response = await fetch('poems.csv'); // Replace with your actual CSV file path
                 const data = await response.text();
                 const lines = data.split('\n');
 
                 lines.forEach(line => {
+                    // Match text within quotes, keeping HTML formatting tags intact
                     const match = line.match(/"([^"]+)"/);
                     if (match) {
+                        // Push the formatted poem into the poems array
                         poems.push(match[1]);
                     }
                 });
@@ -74,6 +77,7 @@
             }
         }
 
+        // Function to load and display a random poem
         function loadRandomPoem() {
             if (poems.length === 0) {
                 document.getElementById('reader').textContent = 'No poems available.';
@@ -81,10 +85,11 @@
             }
 
             const randomIndex = Math.floor(Math.random() * poems.length);
-            document.getElementById('reader').textContent = poems[randomIndex];
+            // Use innerHTML to render HTML tags properly for formatting
+            document.getElementById('reader').innerHTML = poems[randomIndex];
         }
 
-        // Fetch poems on load
+        // Fetch poems when the page loads
         fetchPoems();
     </script>
 </body>
