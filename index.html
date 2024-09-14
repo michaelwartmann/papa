@@ -33,30 +33,11 @@
             cursor: pointer;
             margin-top: 10px;
             display: block;
+            text-decoration: none;
+            text-align: center;
         }
         .musicButton {
             background-color: #ffc107; /* Yellow background for music button */
-        }
-        #quoteDisplay {
-            margin: 20px;
-            font-size: 24px;
-            text-align: center;
-            max-width: 80%;
-            border: 2px solid #000;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #fff;
-        }
-        #reader {
-            width: 80%;
-            height: 70vh;
-            overflow-y: scroll;
-            border: 1px solid #ccc;
-            padding: 20px;
-            background: #fff;
-            font-size: 18px;
-            line-height: 1.6;
-            display: none; /* Initially hidden */
         }
     </style>
 </head>
@@ -66,24 +47,13 @@
         <h1>🎉 Herzlichen Glückwunsch zum Geburtstag, Papa! 🎉</h1> <!-- Birthday message -->
         <p>Genieße die Zitate von Goethe und entdecke seine Werke!</p> <!-- Intro message -->
         <button class="button musicButton" onclick="playMusic()">Musik Abspielen</button> <!-- Button to play music -->
-        <button class="button" onclick="showRandomQuote()">Zeige ein Zitat von Goethe</button> <!-- Button to display a quote -->
-        <button class="button" onclick="openReader()">Ebook Reader Öffnen</button> <!-- Button to open ebook reader -->
+        <a href="quotes.html" class="button">Zeige ein Zitat von Goethe</a> <!-- Link to quotes page -->
+        <a href="reader.html" class="button">Ebook Reader Öffnen</a> <!-- Link to ebook reader page -->
         <audio id="birthdaySong" src="hiep_hiep_hoera.mp3" loop></audio> <!-- Birthday song audio -->
-
-        <!-- Quote Display -->
-        <div id="quoteDisplay" style="display: none;">Hier wird ein Goethe-Zitat angezeigt.</div> <!-- Placeholder for quotes -->
-
-        <!-- Ebook Reader -->
-        <input type="file" id="fileInput" accept=".txt" style="display: none;" /> <!-- File input for reader -->
-        <div id="reader">Wähle eine Datei, um ein Werk von Goethe zu lesen.</div> <!-- Ebook reader display -->
     </div>
 
     <script>
         const birthdaySong = document.getElementById('birthdaySong');
-        const quoteDisplay = document.getElementById('quoteDisplay');
-        const fileInput = document.getElementById('fileInput');
-        const readerDiv = document.getElementById('reader');
-        let quotes = [];
 
         // Function to play the birthday music
         function playMusic() {
@@ -92,53 +62,6 @@
                 console.log('Autoplay failed due to browser restrictions:', error);
             });
         }
-
-        // Load quotes from a CSV file
-        async function loadQuotes() {
-            const response = await fetch('quotes.csv'); // Make sure quotes.csv is in the same directory
-            const data = await response.text();
-            quotes = data.split('\n').map(line => line.trim()).filter(line => line);
-        }
-
-        // Display a random Goethe quote
-        function showRandomQuote() {
-            if (quotes.length === 0) {
-                loadQuotes().then(() => {
-                    displayQuote();
-                });
-            } else {
-                displayQuote();
-            }
-        }
-
-        // Function to display a random quote
-        function displayQuote() {
-            const randomIndex = Math.floor(Math.random() * quotes.length);
-            quoteDisplay.textContent = quotes[randomIndex];
-            quoteDisplay.style.display = 'block';
-            readerDiv.style.display = 'none'; // Hide the reader when showing quotes
-        }
-
-        // Open the ebook reader
-        function openReader() {
-            fileInput.click(); // Trigger the file input
-        }
-
-        // Handle file input change
-        fileInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file && file.type === 'text/plain') {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    readerDiv.textContent = e.target.result;
-                    readerDiv.style.display = 'block'; // Show the reader
-                    quoteDisplay.style.display = 'none'; // Hide the quote display when reading
-                };
-                reader.readAsText(file);
-            } else {
-                alert('Bitte wählen Sie eine gültige Textdatei aus.');
-            }
-        });
     </script>
 </body>
 </html>
