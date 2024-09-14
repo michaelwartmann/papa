@@ -22,9 +22,9 @@
             text-align: center;
             padding: 20px;
         }
-        /* Styling for the buttons */
+        /* Styling for all buttons */
         .button {
-            padding: 10px 20px;
+            padding: 15px 30px;
             font-size: 18px;
             background-color: #007bff; /* Blue background */
             color: white;
@@ -35,9 +35,16 @@
             display: block;
             text-decoration: none;
             text-align: center;
+            width: 220px; /* Set a fixed width for uniform button size */
         }
         .musicButton {
             background-color: #ffc107; /* Yellow background for music button */
+        }
+        /* Center the buttons container */
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
     </style>
 </head>
@@ -46,9 +53,11 @@
     <div id="starterPage">
         <h1>🎉 Herzlichen Glückwunsch zum Geburtstag, Papa! 🎉</h1> <!-- Birthday message -->
         <p>Genieße die Zitate von Goethe und entdecke seine Werke!</p> <!-- Intro message -->
-        <button class="button musicButton" onclick="playMusic()">Musik Abspielen</button> <!-- Button to play music -->
-        <a href="quotes.html" class="button">Goethezitate</a> <!-- Link to quotes page -->
-        <a href="reader.html" class="button">Goethes Werke lesen</a> <!-- Link to ebook reader page -->
+        <div class="buttons-container">
+            <button class="button musicButton" onclick="playMusic()">Musik Abspielen</button> <!-- Button to play music -->
+            <a href="quotes.html" class="button">Goethezitate</a> <!-- Link to quotes page -->
+            <a href="reader.html" class="button">Goethes Werke lesen</a> <!-- Link to ebook reader page -->
+        </div>
         <audio id="birthdaySong" src="hiep_hiep_hoera.mp3" loop></audio> <!-- Birthday song audio -->
     </div>
 
