@@ -35,10 +35,16 @@
             cursor: pointer;
             margin-top: 10px;
         }
-        .dropdown {
+        .heart-button {
+            font-size: 24px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #ccc;
             margin-top: 10px;
-            padding: 10px;
-            font-size: 16px;
+        }
+        .heart-button.liked {
+            color: red; /* Change color to red when liked */
         }
     </style>
 </head>
@@ -47,29 +53,18 @@
     <div id="quoteDisplay">Ein Zitat wird geladen...</div> <!-- Placeholder for quotes -->
     <button class="button" onclick="showRandomQuote()">Neues Zitat anzeigen</button> <!-- Button to fetch a new quote -->
     <button class="button" onclick="toggleFavorites()">Nur Lieblingszitate anzeigen</button> <!-- Button to show favorite quotes -->
-    <button class="button" onclick="likeQuote()">Zitat mögen</button> <!-- Button to like the quote -->
-    
-    <!-- Dropdown for selecting the work of Goethe -->
-    <select id="workDropdown" class="dropdown">
-        <option value="">Wähle das Werk aus</option>
-        <option value="Faust I">Faust I</option>
-        <option value="Faust II">Faust II</option>
-        <option value="Iphigenie auf Tauris">Iphigenie auf Tauris</option>
-        <option value="Egmont">Egmont</option>
-        <option value="Reineke Fuchs">Reineke Fuchs</option>
-        <option value="Hermann und Dorothea">Hermann und Dorothea</option>
-    </select>
+    <button class="heart-button" id="heartButton" onclick="likeQuote()">❤️</button> <!-- Heart button to like quote -->
 
     <script>
         let quotes = [];
         let currentQuote = '';
-        let favoriteQuotes = [];
+        let likedQuotes = new Set();
         let showFavorites = false;
 
         // Load quotes from the CSV file
         async function loadQuotes() {
             try {
-                const response = await fetch('goethequotes.csv');
+                const response = await fetch('goethequotes_cleaned.csv');
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -87,25 +82,20 @@
 
         // Display a random Goethe quote
         function showRandomQuote() {
+            resetHeart(); // Reset heart button on new quote
             if (showFavorites) {
-                if (favoriteQuotes.length === 0) {
+                if (likedQuotes.size === 0) {
                     document.getElementById('quoteDisplay').textContent = 'Keine Lieblingszitate vorhanden.';
                     return;
                 }
-                const randomIndex = Math.floor(Math.random() * favoriteQuotes.length);
-                displayQuote(favoriteQuotes[randomIndex]);
+                const randomIndex = Math.floor(Math.random() * likedQuotes.size);
+                currentQuote = Array.from(likedQuotes)[randomIndex];
             } else {
                 const randomIndex = Math.floor(Math.random() * quotes.length);
-                displayQuote(quotes[randomIndex]);
+                currentQuote = quotes[randomIndex].replace(/["„“]/g, '').trim();
             }
-        }
-
-        // Function to display a quote by stripping unnecessary details
-        function displayQuote(quote) {
-            const parts = quote.split(',');
-            // Assuming the quote is the second part
-            currentQuote = parts[1].replace(/["„“]/g, '').trim();
             document.getElementById('quoteDisplay').textContent = currentQuote;
+            updateHeartButton();
         }
 
         // Toggle between showing all quotes and only favorite quotes
@@ -114,27 +104,32 @@
             showRandomQuote();
         }
 
-        // Like the current quote and save it
+        // Handle the heart button to like the current quote
         function likeQuote() {
-            if (!currentQuote) return;
-
-            // Check if the quote is already marked as favorite
-            if (!favoriteQuotes.includes(currentQuote)) {
-                favoriteQuotes.push(currentQuote);
-                saveQuoteToCSV(currentQuote);
-                alert('Zitat wurde zu den Lieblingszitaten hinzugefügt.');
+            const heartButton = document.getElementById('heartButton');
+            if (likedQuotes.has(currentQuote)) {
+                likedQuotes.delete(currentQuote);
+                heartButton.classList.remove('liked');
             } else {
-                alert('Zitat ist bereits in den Lieblingszitaten.');
+                likedQuotes.add(currentQuote);
+                heartButton.classList.add('liked');
             }
         }
 
-        // Save the liked quote to the CSV (simulated as local storage save for now)
-        function saveQuoteToCSV(quote) {
-            // Since saving directly to a CSV isn't straightforward in a browser,
-            // this can be adapted to save to local storage or backend server if required.
-            const selectedWork = document.getElementById('workDropdown').value || 'Unbekannt';
-            console.log(`Saving quote: ${quote} from ${selectedWork}`);
-            // Future implementation: save to server or allow user download CSV
+        // Reset the heart button to its default state
+        function resetHeart() {
+            const heartButton = document.getElementById('heartButton');
+            heartButton.classList.remove('liked');
+        }
+
+        // Update the heart button to reflect the current quote's like status
+        function updateHeartButton() {
+            const heartButton = document.getElementById('heartButton');
+            if (likedQuotes.has(currentQuote)) {
+                heartButton.classList.add('liked');
+            } else {
+                heartButton.classList.remove('liked');
+            }
         }
 
         // Load quotes when the page loads
