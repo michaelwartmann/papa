@@ -60,7 +60,7 @@
         // Function to fetch poems from the CSV file and extract text within quotes
         async function fetchPoems() {
             try {
-                const response = await fetch('test.csv'); // Replace with your actual CSV file path
+                const response = await fetch('poems.csv'); // Replace with your actual CSV file path
                 const data = await response.text();
                 const lines = data.split('\n');
 
