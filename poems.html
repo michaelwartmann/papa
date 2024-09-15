@@ -57,25 +57,19 @@
     <script>
         let poems = [];
 
-        // Function to fetch poems from the CSV file and extract text within quotes
+        // Function to fetch poems from the CSV file and extract text based on the new pipe delimiter
         async function fetchPoems() {
             try {
                 const response = await fetch('poems.csv'); // Replace with your actual CSV file path
                 const data = await response.text();
-                const lines = data.split('\n');
 
-                lines.forEach((line, index) => {
-                    // Match text within quotes, keeping HTML formatting tags intact
-                    const match = line.match(/"([^"]+)"/);
-                    if (match) {
-                        const poemText = match[1];
-                        console.log(`Poem ${index + 1}:`, poemText); // Logs each extracted poem to help debug
-                        poems.push(poemText);
-                    }
-                });
+                // Split the data using the pipe '|' as the delimiter
+                poems = data.split('|').map(poem => poem.trim()).filter(poem => poem);
 
                 if (poems.length === 0) {
                     console.log("No poems were extracted. Check the CSV format.");
+                } else {
+                    console.log(`Extracted ${poems.length} poems successfully.`);
                 }
             } catch (error) {
                 document.getElementById('reader').textContent = `Error loading poems: ${error.message}`;
