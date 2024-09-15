@@ -64,7 +64,7 @@
                 const data = await response.text();
 
                 // Split the data using the pipe '|' as the delimiter
-                poems = data.split('|').map(poem => poem.trim()).filter(poem => poem);
+                poems = data.split('|\n').map(poem => poem.trim()).filter(poem => poem);
 
                 if (poems.length === 0) {
                     console.log("No poems were extracted. Check the CSV format.");
