@@ -3,313 +3,696 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Alles Gute zum Vatertag, Papa!</title>
+    <title>Alles Gute zum Vatertag!</title>
     <style>
-        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; background-color: #f0f0f0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: #333; }
-        #scene-container { width: 90vw; height: 75vh; max-width: 1000px; max-height: 700px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.2); background-color: #e0e0ff; /* Light lavender background for the scene */ }
-        canvas { display: block; border-radius: 15px; }
-        .controls { margin-top: 20px; padding: 10px; background-color: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;}
-        .controls button {
-            padding: 10px 20px;
-            font-size: 16px;
-            background-color: #4CAF50; /* Green */
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+        }
+        
+        #canvas {
+            display: block;
+            cursor: grab;
+        }
+        
+        #canvas:active {
+            cursor: grabbing;
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .controls h2 {
+            margin: 0 0 15px 0;
+            font-size: 24px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
-            border-radius: 5px;
+            padding: 10px 20px;
+            border-radius: 25px;
             cursor: pointer;
-            transition: background-color 0.3s ease;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
-        .controls button:hover {
-            background-color: #45a049;
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
         }
-        .info-text {
-            margin-top: 10px;
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .file-label {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .file-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            color: white;
             font-size: 14px;
-            color: #555;
+            opacity: 0.8;
+        }
+        
+        #loadingScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            z-index: 1000;
         }
     </style>
 </head>
 <body>
-    <h1>Alles Gute zum Vatertag!</h1>
-    <div id="scene-container"></div>
+    <div id="loadingScreen">Lade 3D-Szene...</div>
+    
+    <canvas id="canvas"></canvas>
+    
     <div class="controls">
-        <audio id="vatertagsMusik" src="papa.mp3" loop></audio>
-        <button id="playPauseButton">Musik Abspielen</button>
-        <p class="info-text">Klicke und ziehe, um die Szene zu drehen. Scrolle, um zu zoomen.</p>
+        <h2>🎸 Alles Gute zum Vatertag! 🎸</h2>
+        <p>Für den besten Papa der Welt! 💖</p>
+        <div class="audio-controls">
+            <input type="file" id="audioFile" accept="audio/mp3">
+            <label for="audioFile" class="file-label">MP3 laden</label>
+            <button id="playBtn" style="display: none;">▶️ Abspielen</button>
+        </div>
+    </div>
+    
+    <div class="info">
+        Maus bewegen zum Drehen • Scrollen zum Zoomen
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js" type="module"></script>
-    <script type="module">
-        // Import necessary modules from Three.js
-        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js';
-        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/controls/OrbitControls.js';
-        import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/loaders/FontLoader.js';
-        import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/geometries/TextGeometry.js';
-
-        let scene, camera, renderer, controls;
-        const guitars = [];
-        const boundingBoxSize = 10; // Defines the cube within which guitars bounce
-
-        // Initialize the scene, camera, and renderer
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        let scene, camera, renderer;
+        let guitars = [];
+        let papaText, babyGirl;
+        let audioContext, audioSource, analyser;
+        let audioData;
+        let isPlaying = false;
+        let targetRotationX = 0;
+        let targetRotationY = 0;
+        
+        // Initialize Three.js
         function init() {
             // Scene setup
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x87CEEB); // Sky blue background
-
-            // Camera setup
-            camera = new THREE.PerspectiveCamera(75, getAspectRatio(), 0.1, 1000);
-            camera.position.set(0, 5, 15);
-
+            scene.fog = new THREE.Fog(0x2a5298, 10, 100);
+            
+            // Camera setup - closer to see everything
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 20;
+            camera.position.y = 2;
+            
             // Renderer setup
-            const container = document.getElementById('scene-container');
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.shadowMap.enabled = true; // Enable shadows
-            container.appendChild(renderer.domElement);
-
+            renderer = new THREE.WebGLRenderer({ 
+                canvas: document.getElementById('canvas'),
+                antialias: true 
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
             // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Soft white light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
             scene.add(ambientLight);
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-            directionalLight.position.set(5, 10, 7.5);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 5);
             directionalLight.castShadow = true;
-            // Configure shadow properties for better quality
-            directionalLight.shadow.mapSize.width = 1024;
-            directionalLight.shadow.mapSize.height = 1024;
-            directionalLight.shadow.camera.near = 0.5;
-            directionalLight.shadow.camera.far = 50;
             scene.add(directionalLight);
             
-            // OrbitControls for camera interaction
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
-            controls.dampingFactor = 0.05;
-            controls.screenSpacePanning = false;
-            controls.minDistance = 5;
-            controls.maxDistance = 50;
-            controls.maxPolarAngle = Math.PI / 2;
-
-
-            // Create elements
-            createGuitars(15);
+            // Colorful point lights
+            const pointLight1 = new THREE.PointLight(0xff00ff, 0.5, 20);
+            pointLight1.position.set(-10, 5, 0);
+            scene.add(pointLight1);
+            
+            const pointLight2 = new THREE.PointLight(0x00ffff, 0.5, 20);
+            pointLight2.position.set(10, 5, 0);
+            scene.add(pointLight2);
+            
+            // Create all elements
+            createGuitars();
             createPapaText();
             createBabyGirl();
-            createFloor(); // Add a floor for context and shadows
-
-            // Handle window resize
-            window.addEventListener('resize', onWindowResize, false);
-
-            // Start animation loop
-            animate();
+            
+            // Add stars background
+            createStars();
+            
+            // Mouse controls
+            setupMouseControls();
+            
+            // Hide loading screen
+            document.getElementById('loadingScreen').style.display = 'none';
         }
-
-        function getAspectRatio() {
-            const container = document.getElementById('scene-container');
-            return container.clientWidth / container.clientHeight;
-        }
-
-        // Create a simple representation of a guitar
+        
         function createGuitarShape() {
-            const shape = new THREE.Shape();
-            // Body
-            shape.moveTo(-1, -2);
-            shape.bezierCurveTo(-1.5, -1, -1.5, 1, -1, 2);
-            shape.lineTo(-0.5, 2);
-            shape.bezierCurveTo(0, 2.5, 1, 2.5, 1.5, 2); // bottom curve
-            shape.lineTo(1.5, 2);
-            shape.bezierCurveTo(2, 1, 2, -1, 1.5, -2);
-            shape.lineTo(1.5, -2);
-            shape.lineTo(0.5, -2.2); // slight indent
-            shape.lineTo(-0.5, -2.2);
-            shape.lineTo(-1, -2);
-
+            const group = new THREE.Group();
+            
+            // Guitar body
+            const bodyGeometry = new THREE.BoxGeometry(1.5, 2, 0.3);
+            bodyGeometry.vertices = []; // For older Three.js compatibility
+            
+            const bodyMaterial = new THREE.MeshPhongMaterial({
+                color: 0x8B4513,
+                shininess: 100
+            });
+            
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            group.add(body);
+            
+            // Create rounded body using two cylinders
+            const curve1 = new THREE.CylinderGeometry(0.8, 0.8, 0.3, 16);
+            const curve2 = new THREE.CylinderGeometry(0.6, 0.6, 0.3, 16);
+            
+            const curveBody1 = new THREE.Mesh(curve1, bodyMaterial);
+            curveBody1.rotation.x = Math.PI / 2;
+            curveBody1.position.y = -0.5;
+            group.add(curveBody1);
+            
+            const curveBody2 = new THREE.Mesh(curve2, bodyMaterial);
+            curveBody2.rotation.x = Math.PI / 2;
+            curveBody2.position.y = 0.5;
+            group.add(curveBody2);
+            
             // Neck
-            shape.moveTo(-0.3, 2);
-            shape.lineTo(-0.2, 4);
-            shape.lineTo(0.2, 4);
-            shape.lineTo(0.3, 2);
-            shape.lineTo(-0.3, 2);
+            const neckGeometry = new THREE.BoxGeometry(0.3, 2, 0.1);
+            const neck = new THREE.Mesh(neckGeometry, bodyMaterial);
+            neck.position.y = 1.8;
+            group.add(neck);
             
-            return shape;
+            // Headstock
+            const headGeometry = new THREE.BoxGeometry(0.5, 0.5, 0.1);
+            const head = new THREE.Mesh(headGeometry, bodyMaterial);
+            head.position.y = 2.8;
+            group.add(head);
+            
+            // Sound hole
+            const holeGeometry = new THREE.RingGeometry(0.2, 0.4, 16);
+            const holeMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x000000,
+                side: THREE.DoubleSide
+            });
+            const hole = new THREE.Mesh(holeGeometry, holeMaterial);
+            hole.position.z = 0.16;
+            group.add(hole);
+            
+            // Strings
+            const stringMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc });
+            for (let i = 0; i < 6; i++) {
+                const points = [];
+                points.push(new THREE.Vector3((i - 2.5) * 0.08, -1, 0.2));
+                points.push(new THREE.Vector3((i - 2.5) * 0.08, 2.5, 0.2));
+                const stringGeometry = new THREE.BufferGeometry().setFromPoints(points);
+                const string = new THREE.Line(stringGeometry, stringMaterial);
+                group.add(string);
+            }
+            
+            return group;
         }
-
-        // Create multiple guitar objects
-        function createGuitars(count) {
-            const guitarGeometry = new THREE.ExtrudeGeometry(createGuitarShape(), { depth: 0.2, bevelEnabled: false });
+        
+        function createGuitars() {
+            const guitarColors = [0xff6b6b, 0x4ecdc4, 0xffe66d, 0x6a0dad, 0xff006e, 0x95e1d3, 0xf38181, 0xaa96da];
             
-            for (let i = 0; i < count; i++) {
-                const guitarMaterial = new THREE.MeshStandardMaterial({
-                    color: new THREE.Color(Math.random() * 0xffffff),
-                    roughness: 0.5,
-                    metalness: 0.3
+            // Create 8 guitars in a circular arrangement
+            for (let i = 0; i < 8; i++) {
+                const guitar = createGuitarShape();
+                
+                // Arrange in a circle
+                const angle = (i / 8) * Math.PI * 2;
+                const radius = 8;
+                guitar.position.x = Math.cos(angle) * radius;
+                guitar.position.y = Math.sin(angle) * 2;
+                guitar.position.z = Math.sin(angle) * radius;
+                
+                // Random rotation
+                guitar.rotation.x = Math.random() * Math.PI * 2;
+                guitar.rotation.y = Math.random() * Math.PI * 2;
+                guitar.rotation.z = Math.random() * Math.PI * 2;
+                
+                // Add glow
+                const glowMaterial = new THREE.MeshPhongMaterial({
+                    color: guitarColors[i],
+                    emissive: guitarColors[i],
+                    emissiveIntensity: 0.3
                 });
-                const guitar = new THREE.Mesh(guitarGeometry, guitarMaterial);
-
-                // Random initial position
-                guitar.position.set(
-                    (Math.random() - 0.5) * boundingBoxSize,
-                    (Math.random() - 0.5) * boundingBoxSize * 0.5 + boundingBoxSize * 0.25, // Keep them somewhat above floor
-                    (Math.random() - 0.5) * boundingBoxSize
+                
+                guitar.traverse((child) => {
+                    if (child.isMesh && child.material.color.getHex() === 0x8B4513) {
+                        child.material = glowMaterial;
+                    }
+                });
+                
+                // Add velocity for animation
+                guitar.userData.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.02,
+                    (Math.random() - 0.5) * 0.02,
+                    (Math.random() - 0.5) * 0.02
                 );
-                // Random initial rotation
-                guitar.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
-                guitar.scale.set(0.5, 0.5, 0.5); // Scale down guitars
-
-                // Custom property for velocity
-                guitar.velocity = new THREE.Vector3(
-                    (Math.random() - 0.5) * 0.1,
-                    (Math.random() - 0.5) * 0.1,
-                    (Math.random() - 0.5) * 0.1
+                guitar.userData.rotationSpeed = new THREE.Vector3(
+                    Math.random() * 0.01,
+                    Math.random() * 0.01,
+                    Math.random() * 0.01
                 );
-                guitar.castShadow = true;
-                guitar.receiveShadow = true;
+                guitar.userData.originalPosition = guitar.position.clone();
+                
                 guitars.push(guitar);
                 scene.add(guitar);
             }
         }
-
-        // Create the "Papa" 3D text
+        
         function createPapaText() {
-            const fontLoader = new FontLoader();
-            fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.164.1/examples/fonts/helvetiker_bold.typeface.json', function (font) {
-                const textGeometry = new TextGeometry('Papa', {
-                    font: font,
-                    size: 2,
-                    height: 0.5,
-                    curveSegments: 12,
-                    bevelEnabled: true,
-                    bevelThickness: 0.1,
-                    bevelSize: 0.05,
-                    bevelOffset: 0,
-                    bevelSegments: 5
-                });
-                textGeometry.center(); // Center the text geometry
-
-                const textMaterial = new THREE.MeshStandardMaterial({ color: 0xff4500, roughness: 0.3, metalness: 0.2 }); // OrangeRed
-                const papaText = new THREE.Mesh(textGeometry, textMaterial);
-                papaText.position.set(0, 6, 0); // Position it above
-                papaText.castShadow = true;
-                papaText.receiveShadow = true;
-                scene.add(papaText);
+            const textGroup = new THREE.Group();
+            
+            // Create 3D letters using boxes
+            const letterMaterial = new THREE.MeshPhongMaterial({
+                color: 0xffd700,
+                emissive: 0xffd700,
+                emissiveIntensity: 0.5,
+                shininess: 100
+            });
+            
+            // Simple block letters PAPA
+            const letters = ['P', 'A', 'P', 'A'];
+            const letterSpacing = 2.5;
+            
+            letters.forEach((letter, index) => {
+                const letterGroup = new THREE.Group();
+                
+                if (letter === 'P') {
+                    // Vertical bar
+                    const vertical = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.4, 2, 0.4),
+                        letterMaterial
+                    );
+                    vertical.position.x = -0.5;
+                    letterGroup.add(vertical);
+                    
+                    // Top horizontal
+                    const topBar = new THREE.Mesh(
+                        new THREE.BoxGeometry(1, 0.4, 0.4),
+                        letterMaterial
+                    );
+                    topBar.position.y = 0.8;
+                    letterGroup.add(topBar);
+                    
+                    // Middle horizontal
+                    const midBar = new THREE.Mesh(
+                        new THREE.BoxGeometry(1, 0.4, 0.4),
+                        letterMaterial
+                    );
+                    letterGroup.add(midBar);
+                    
+                    // Right vertical (partial)
+                    const rightBar = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.4, 0.8, 0.4),
+                        letterMaterial
+                    );
+                    rightBar.position.x = 0.5;
+                    rightBar.position.y = 0.4;
+                    letterGroup.add(rightBar);
+                } else if (letter === 'A') {
+                    // Left diagonal
+                    const leftBar = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.4, 2.2, 0.4),
+                        letterMaterial
+                    );
+                    leftBar.rotation.z = 0.15;
+                    leftBar.position.x = -0.3;
+                    letterGroup.add(leftBar);
+                    
+                    // Right diagonal
+                    const rightBar = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.4, 2.2, 0.4),
+                        letterMaterial
+                    );
+                    rightBar.rotation.z = -0.15;
+                    rightBar.position.x = 0.3;
+                    letterGroup.add(rightBar);
+                    
+                    // Middle horizontal
+                    const midBar = new THREE.Mesh(
+                        new THREE.BoxGeometry(0.8, 0.4, 0.4),
+                        letterMaterial
+                    );
+                    midBar.position.y = -0.2;
+                    letterGroup.add(midBar);
+                }
+                
+                letterGroup.position.x = (index - 1.5) * letterSpacing;
+                textGroup.add(letterGroup);
+            });
+            
+            textGroup.position.y = 5;
+            textGroup.position.z = -2;
+            
+            papaText = textGroup;
+            scene.add(papaText);
+        }
+        
+        function createBabyGirl() {
+            const babyGroup = new THREE.Group();
+            
+            // Head
+            const headGeometry = new THREE.SphereGeometry(0.8, 16, 16);
+            const skinMaterial = new THREE.MeshPhongMaterial({
+                color: 0xfdbcb4,
+                shininess: 50
+            });
+            const head = new THREE.Mesh(headGeometry, skinMaterial);
+            head.position.y = 0.5;
+            babyGroup.add(head);
+            
+            // Hair
+            const hairMaterial = new THREE.MeshPhongMaterial({
+                color: 0x654321,
+                shininess: 80
+            });
+            
+            // Main hair
+            const hairGeometry = new THREE.SphereGeometry(0.85, 16, 16);
+            const hair = new THREE.Mesh(hairGeometry, hairMaterial);
+            hair.position.y = 0.8;
+            hair.scale.set(1, 0.7, 1);
+            babyGroup.add(hair);
+            
+            // Pigtails
+            const pigtail1 = new THREE.Mesh(
+                new THREE.SphereGeometry(0.3, 8, 8),
+                hairMaterial
+            );
+            pigtail1.position.set(-0.8, 1, 0);
+            babyGroup.add(pigtail1);
+            
+            const pigtail2 = new THREE.Mesh(
+                new THREE.SphereGeometry(0.3, 8, 8),
+                hairMaterial
+            );
+            pigtail2.position.set(0.8, 1, 0);
+            babyGroup.add(pigtail2);
+            
+            // Bows
+            const bowMaterial = new THREE.MeshPhongMaterial({
+                color: 0xff1493,
+                emissive: 0xff1493,
+                emissiveIntensity: 0.2
+            });
+            
+            const bow1 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.3, 0.2, 0.1),
+                bowMaterial
+            );
+            bow1.position.set(-0.8, 1.1, 0.2);
+            babyGroup.add(bow1);
+            
+            const bow2 = new THREE.Mesh(
+                new THREE.BoxGeometry(0.3, 0.2, 0.1),
+                bowMaterial
+            );
+            bow2.position.set(0.8, 1.1, 0.2);
+            babyGroup.add(bow2);
+            
+            // Eyes
+            const eyeGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+            const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+            
+            const eye1 = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            eye1.position.set(-0.2, 0.6, 0.7);
+            babyGroup.add(eye1);
+            
+            const eye2 = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            eye2.position.set(0.2, 0.6, 0.7);
+            babyGroup.add(eye2);
+            
+            // Smile
+            const smileGeometry = new THREE.TorusGeometry(0.2, 0.05, 8, 8, Math.PI);
+            const smileMaterial = new THREE.MeshBasicMaterial({ color: 0xff69b4 });
+            const smile = new THREE.Mesh(smileGeometry, smileMaterial);
+            smile.rotation.z = Math.PI;
+            smile.position.set(0, 0.3, 0.7);
+            babyGroup.add(smile);
+            
+            // Body/Dress
+            const dressGeometry = new THREE.ConeGeometry(0.8, 1.5, 16);
+            const dressMaterial = new THREE.MeshPhongMaterial({
+                color: 0xff69b4,
+                emissive: 0xff69b4,
+                emissiveIntensity: 0.1
+            });
+            const dress = new THREE.Mesh(dressGeometry, dressMaterial);
+            dress.position.y = -0.8;
+            babyGroup.add(dress);
+            
+            // Arms
+            const armGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.6);
+            const arm1 = new THREE.Mesh(armGeometry, skinMaterial);
+            arm1.position.set(-0.5, -0.3, 0);
+            arm1.rotation.z = 0.5;
+            babyGroup.add(arm1);
+            
+            const arm2 = new THREE.Mesh(armGeometry, skinMaterial);
+            arm2.position.set(0.5, -0.3, 0);
+            arm2.rotation.z = -0.5;
+            babyGroup.add(arm2);
+            
+            // Position baby girl
+            babyGroup.position.set(0, -2, 3);
+            babyGroup.scale.set(1.5, 1.5, 1.5);
+            
+            babyGirl = babyGroup;
+            scene.add(babyGirl);
+        }
+        
+        function createStars() {
+            const starsGeometry = new THREE.BufferGeometry();
+            const starsMaterial = new THREE.PointsMaterial({
+                color: 0xffffff,
+                size: 0.1,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            const starsVertices = [];
+            for (let i = 0; i < 1000; i++) {
+                const x = (Math.random() - 0.5) * 100;
+                const y = (Math.random() - 0.5) * 100;
+                const z = (Math.random() - 0.5) * 100;
+                starsVertices.push(x, y, z);
+            }
+            
+            starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starsVertices, 3));
+            const stars = new THREE.Points(starsGeometry, starsMaterial);
+            scene.add(stars);
+        }
+        
+        function setupMouseControls() {
+            let mouseX = 0;
+            let mouseY = 0;
+            
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+                
+                targetRotationY = mouseX * 0.5;
+                targetRotationX = mouseY * 0.2;
+            });
+            
+            // Zoom with scroll
+            document.addEventListener('wheel', (event) => {
+                camera.position.z += event.deltaY * 0.01;
+                camera.position.z = Math.max(10, Math.min(40, camera.position.z));
             });
         }
-
-        // Create a simple representation of a baby girl
-        function createBabyGirl() {
-            const group = new THREE.Group();
-
-            // Body (simple cylinder or sphere)
-            const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xffc0cb, roughness: 0.7, metalness: 0.1 }); // Pink
-            const bodyGeometry = new THREE.SphereGeometry(0.8, 32, 16);
-            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-            body.position.y = 0.8; // Lift body
-            body.castShadow = true;
-            body.receiveShadow = true;
-            group.add(body);
-
-            // Head
-            const headGeometry = new THREE.SphereGeometry(0.5, 32, 16);
-            const head = new THREE.Mesh(headGeometry, bodyMaterial); // Same pink material
-            head.position.y = 1.9; // Position head on top of body
-            head.castShadow = true;
-            head.receiveShadow = true;
-            group.add(head);
-            
-            // Position the baby girl
-            group.position.set(4, 0, 4); // Example position
-            group.scale.set(1.5, 1.5, 1.5);
-            scene.add(group);
-        }
-
-        // Create a floor plane
-        function createFloor() {
-            const floorGeometry = new THREE.PlaneGeometry(20, 20);
-            const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x90ee90, side: THREE.DoubleSide, roughness: 0.8 }); // LightGreen
-            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
-            floor.rotation.x = -Math.PI / 2; // Rotate to be horizontal
-            floor.position.y = -boundingBoxSize / 4; // Position it below the bouncing area slightly
-            floor.receiveShadow = true; // Floor should receive shadows
-            scene.add(floor);
-        }
-
-        // Handle window resize events
-        function onWindowResize() {
-            const container = document.getElementById('scene-container');
-            camera.aspect = getAspectRatio();
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        }
-
-        // Animation loop
+        
         function animate() {
             requestAnimationFrame(animate);
-
-            const halfBox = boundingBoxSize / 2;
-            const floorLevel = -boundingBoxSize / 4 + 0.25; // Guitar half-height roughly
-
-            // Animate guitars (molecular motion)
-            guitars.forEach(guitar => {
-                guitar.position.add(guitar.velocity);
-                guitar.rotation.x += guitar.velocity.x * 0.1;
-                guitar.rotation.y += guitar.velocity.y * 0.1;
-
-                // Bounce off walls
-                if (guitar.position.x > halfBox || guitar.position.x < -halfBox) {
-                    guitar.velocity.x *= -1;
-                    guitar.position.x = Math.max(-halfBox, Math.min(halfBox, guitar.position.x)); // clamp
+            
+            // Animate guitars
+            guitars.forEach((guitar, index) => {
+                // Molecular movement
+                guitar.position.add(guitar.userData.velocity);
+                
+                // Keep guitars in bounds
+                const maxDistance = 10;
+                if (guitar.position.length() > maxDistance) {
+                    guitar.userData.velocity.multiplyScalar(-1);
                 }
-                if (guitar.position.z > halfBox || guitar.position.z < -halfBox) {
-                    guitar.velocity.z *= -1;
-                    guitar.position.z = Math.max(-halfBox, Math.min(halfBox, guitar.position.z)); // clamp
-                }
-                // Bounce off floor and ceiling (adjusted for floor level)
-                if (guitar.position.y > (halfBox * 0.5 + boundingBoxSize * 0.25) || guitar.position.y < floorLevel) {
-                    guitar.velocity.y *= -1;
-                    guitar.position.y = Math.max(floorLevel, Math.min((halfBox * 0.5 + boundingBoxSize * 0.25), guitar.position.y)); // clamp
+                
+                // Rotation
+                guitar.rotation.x += guitar.userData.rotationSpeed.x;
+                guitar.rotation.y += guitar.userData.rotationSpeed.y;
+                guitar.rotation.z += guitar.userData.rotationSpeed.z;
+                
+                // Audio reactivity
+                if (analyser && audioData) {
+                    const frequency = audioData[index * 16] / 255;
+                    const scale = 1 + frequency * 0.5;
+                    guitar.scale.setScalar(scale);
+                    
+                    // Speed boost
+                    const speedBoost = 1 + frequency;
+                    guitar.position.x = guitar.userData.originalPosition.x + Math.sin(Date.now() * 0.001 + index) * 2 * frequency;
+                    guitar.position.y = guitar.userData.originalPosition.y + Math.cos(Date.now() * 0.001 + index) * 2 * frequency;
                 }
             });
-
-            controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+            
+            // Animate Papa text
+            if (papaText) {
+                papaText.rotation.y += 0.01;
+                papaText.position.y = 5 + Math.sin(Date.now() * 0.002) * 0.5;
+                
+                if (analyser && audioData) {
+                    const avgFrequency = audioData.reduce((a, b) => a + b) / audioData.length / 255;
+                    const scale = 1 + avgFrequency * 0.3;
+                    papaText.scale.setScalar(scale);
+                    
+                    // Color pulse
+                    papaText.traverse((child) => {
+                        if (child.isMesh) {
+                            child.material.emissiveIntensity = 0.5 + avgFrequency * 0.5;
+                        }
+                    });
+                }
+            }
+            
+            // Animate baby girl
+            if (babyGirl) {
+                // Gentle swaying
+                babyGirl.rotation.y = Math.sin(Date.now() * 0.001) * 0.2;
+                babyGirl.position.x = Math.sin(Date.now() * 0.0015) * 0.5;
+                
+                // Dancing to music
+                if (analyser && audioData) {
+                    const bassFrequency = audioData[2] / 255;
+                    const midFrequency = audioData[Math.floor(audioData.length / 2)] / 255;
+                    
+                    // Bounce
+                    babyGirl.position.y = -2 + Math.abs(Math.sin(Date.now() * 0.005)) * bassFrequency * 2;
+                    
+                    // Tilt
+                    babyGirl.rotation.z = Math.sin(Date.now() * 0.01) * midFrequency * 0.3;
+                    
+                    // Scale pulse
+                    const scale = 1.5 + bassFrequency * 0.2;
+                    babyGirl.scale.setScalar(scale);
+                }
+            }
+            
+            // Camera movement
+            scene.rotation.y += (targetRotationY - scene.rotation.y) * 0.05;
+            scene.rotation.x += (targetRotationX - scene.rotation.x) * 0.05;
+            
             renderer.render(scene, camera);
         }
-
-        // Music controls
-        const audio = document.getElementById('vatertagsMusik');
-        const playPauseButton = document.getElementById('playPauseButton');
-        let isPlaying = false;
-
-        playPauseButton.addEventListener('click', () => {
-            if (isPlaying) {
-                audio.pause();
-                playPauseButton.textContent = 'Musik Abspielen';
-            } else {
-                audio.play().catch(error => console.error("Error playing audio:", error)); // Catch potential errors
-                playPauseButton.textContent = 'Musik Pausieren';
+        
+        // Audio setup
+        document.getElementById('audioFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    setupAudio(e.target.result);
+                    document.getElementById('playBtn').style.display = 'inline-block';
+                };
+                reader.readAsArrayBuffer(file);
             }
-            isPlaying = !isPlaying;
         });
         
-        // Check if audio can be played (useful for some browsers with autoplay policies)
-        audio.oncanplaythrough = () => {
-            // You could enable the button here if it was initially disabled
-            console.log("Audio kann abgespielt werden.");
-        };
-        audio.onerror = (e) => {
-            console.error("Fehler beim Laden der Audiodatei:", e);
-            playPauseButton.textContent = 'Audio Fehler';
-            playPauseButton.disabled = true;
-            const controlsDiv = document.querySelector('.controls');
-            const errorMsg = document.createElement('p');
-            errorMsg.textContent = 'Fehler: Audiodatei nicht gefunden oder Format nicht unterstützt. Bitte überprüfe den Pfad "DEINE_MUSIKDATEI.mp3" im Code.';
-            errorMsg.style.color = 'red';
-            controlsDiv.appendChild(errorMsg);
-        };
-
-
-        // Initialize everything
+        function setupAudio(arrayBuffer) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            audioContext.decodeAudioData(arrayBuffer, function(buffer) {
+                const source = audioContext.createBufferSource();
+                source.buffer = buffer;
+                
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                audioData = new Uint8Array(analyser.frequencyBinCount);
+                
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+                
+                audioSource = source;
+                
+                document.getElementById('playBtn').onclick = function() {
+                    if (!isPlaying) {
+                        audioSource.start(0);
+                        isPlaying = true;
+                        this.textContent = '⏸️ Pause';
+                        
+                        function updateAudio() {
+                            if (isPlaying) {
+                                analyser.getByteFrequencyData(audioData);
+                                requestAnimationFrame(updateAudio);
+                            }
+                        }
+                        updateAudio();
+                    }
+                };
+            });
+        }
+        
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // Start
         init();
+        animate();
     </script>
 </body>
 </html>
