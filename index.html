@@ -179,7 +179,8 @@
     <script>
         let scene, camera, renderer;
         let guitars = [];
-        let papaText, rudiText; // Added rudiText
+        let papaText, rudiText; 
+        let babyGirl; // Defined babyGirl here
         let audioContext, audioSource, analyser, audioBuffer;
         let audioData;
         let isPlaying = false;
@@ -188,87 +189,76 @@
         let touchStartX = 0;
         let touchStartY = 0;
         let pinchStartDistance = 0;
-        let initialCameraZ = 25; // Slightly increased initial zoom out
+        let initialCameraZ = 25; 
         
-        // Initialize Three.js
         function init() {
-            // Scene setup
             scene = new THREE.Scene();
-            scene.fog = new THREE.Fog(0x2a5298, 15, 120); // Adjusted fog
+            scene.fog = new THREE.Fog(0x2a5298, 15, 120); 
             
-            // Camera setup
             const aspect = window.innerWidth / window.innerHeight;
             camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 1000);
             camera.position.z = initialCameraZ;
-            camera.position.y = 3; // Slightly higher camera
+            camera.position.y = 3; 
             
-            // Renderer setup
             renderer = new THREE.WebGLRenderer({ 
                 canvas: document.getElementById('canvas'),
                 antialias: true,
-                alpha: true // For transparent background if needed
+                alpha: true 
             });
             renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimize for high DPI screens
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); 
             renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap; // Softer shadows
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
             
-            // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); // Brighter ambient
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.7); 
             scene.add(ambientLight);
             
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9); // Brighter directional
-            directionalLight.position.set(10, 15, 10); // Adjusted light position
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9); 
+            directionalLight.position.set(10, 15, 10); 
             directionalLight.castShadow = true;
-            // Configure shadow properties for better quality
             directionalLight.shadow.mapSize.width = 1024;
             directionalLight.shadow.mapSize.height = 1024;
             directionalLight.shadow.camera.near = 0.5;
             directionalLight.shadow.camera.far = 50;
             scene.add(directionalLight);
             
-            // Colorful point lights for atmosphere
-            const pointLight1 = new THREE.PointLight(0xff00ff, 0.6, 30); // Increased intensity and distance
+            const pointLight1 = new THREE.PointLight(0xff00ff, 0.6, 30); 
             pointLight1.position.set(-12, 7, 2);
             scene.add(pointLight1);
             
-            const pointLight2 = new THREE.PointLight(0x00ffff, 0.6, 30); // Increased intensity and distance
+            const pointLight2 = new THREE.PointLight(0x00ffff, 0.6, 30); 
             pointLight2.position.set(12, 7, 2);
             scene.add(pointLight2);
             
-            // Create all elements
             createGuitars();
-            createCustomText("PAPA", 0xffd700, 4, -2, "papaText"); // Create PAPA text
-            createCustomText("RUDI", 0x00ff7f, -4, 2, "rudiText"); // Create RUDI text (Spring Green color)
+            createCustomText("PAPA", 0xffd700, 4, -2, "papaText"); 
+            createCustomText("RUDI", 0x00ff7f, -4, 2, "rudiText"); 
 
             createBabyGirl();
             createStars();
             
-            // Setup controls
             setupTouchControls();
             
-            // Load audio
             loadAudio();
         }
         
         function createGuitarShape() {
             const group = new THREE.Group();
             
-            // Guitar body (more detailed)
             const bodyShape = new THREE.Shape();
             bodyShape.moveTo(0, -1.2);
-            bodyShape.bezierCurveTo(0.8, -1.2, 0.8, -0.5, 0.8, -0.5); // Lower curve
+            bodyShape.bezierCurveTo(0.8, -1.2, 0.8, -0.5, 0.8, -0.5); 
             bodyShape.lineTo(0.8, 0.5);
-            bodyShape.bezierCurveTo(0.8, 0.8, 0.5, 1.0, 0.3, 1.0); // Upper curve shoulder
+            bodyShape.bezierCurveTo(0.8, 0.8, 0.5, 1.0, 0.3, 1.0); 
             bodyShape.lineTo(-0.3, 1.0);
-            bodyShape.bezierCurveTo(-0.5, 1.0, -0.8, 0.8, -0.8, 0.5); // Other upper curve shoulder
+            bodyShape.bezierCurveTo(-0.5, 1.0, -0.8, 0.8, -0.8, 0.5); 
             bodyShape.lineTo(-0.8, -0.5);
-            bodyShape.bezierCurveTo(-0.8, -0.5, -0.8, -1.2, 0, -1.2); // Other lower curve
+            bodyShape.bezierCurveTo(-0.8, -0.5, -0.8, -1.2, 0, -1.2); 
 
             const extrudeSettings = { depth: 0.25, bevelEnabled: true, bevelSegments: 2, steps: 2, bevelSize: 0.05, bevelThickness: 0.05 };
             const bodyGeometry = new THREE.ExtrudeGeometry(bodyShape, extrudeSettings);
             const bodyMaterial = new THREE.MeshPhongMaterial({
-                color: 0x8B4513, // Brown
+                color: 0x8B4513, 
                 shininess: 80
             });
             
@@ -277,37 +267,33 @@
             body.receiveShadow = true;
             group.add(body);
             
-            // Neck
             const neckGeometry = new THREE.BoxGeometry(0.25, 2.2, 0.15);
             const neck = new THREE.Mesh(neckGeometry, bodyMaterial);
-            neck.position.y = 1.8; // Adjusted position
+            neck.position.y = 1.8; 
             neck.castShadow = true;
             group.add(neck);
             
-            // Headstock
             const headGeometry = new THREE.BoxGeometry(0.4, 0.6, 0.15);
             const head = new THREE.Mesh(headGeometry, bodyMaterial);
-            head.position.y = 2.9; // Adjusted position
+            head.position.y = 2.9; 
             head.castShadow = true;
             group.add(head);
             
-            // Sound hole
-            const holeGeometry = new THREE.RingGeometry(0.25, 0.35, 16); // Slightly larger
+            const holeGeometry = new THREE.RingGeometry(0.25, 0.35, 16); 
             const holeMaterial = new THREE.MeshBasicMaterial({ 
                 color: 0x000000,
                 side: THREE.DoubleSide
             });
             const hole = new THREE.Mesh(holeGeometry, holeMaterial);
-            hole.position.z = 0.13; // Slightly forward from body center
-            hole.position.y = -0.1; // Centered on body
+            hole.position.z = 0.13; 
+            hole.position.y = -0.1; 
             group.add(hole);
             
-            // Strings
             const stringMaterial = new THREE.LineBasicMaterial({ color: 0xcccccc, linewidth: 1.5 });
             for (let i = 0; i < 6; i++) {
                 const points = [];
-                points.push(new THREE.Vector3((i - 2.5) * 0.06, -0.8, 0.15)); // Start on bridge
-                points.push(new THREE.Vector3((i - 2.5) * 0.04, 2.6, 0.15)); // End on headstock
+                points.push(new THREE.Vector3((i - 2.5) * 0.06, -0.8, 0.15)); 
+                points.push(new THREE.Vector3((i - 2.5) * 0.04, 2.6, 0.15)); 
                 const stringGeometry = new THREE.BufferGeometry().setFromPoints(points);
                 const string = new THREE.Line(stringGeometry, stringMaterial);
                 group.add(string);
@@ -317,52 +303,48 @@
         }
         
         function createGuitars() {
-            const guitarColors = [0xff6b6b, 0x4ecdc4, 0xffe66d, 0x6a0dad, 0xff006e, 0x95e1d3, 0xf38181, 0xaa96da, 0x3498db, 0x2ecc71, 0xf1c40f, 0xe74c3c]; // More colors
-            const numGuitars = 12; // Increased number of guitars
+            const guitarColors = [0xff6b6b, 0x4ecdc4, 0xffe66d, 0x6a0dad, 0xff006e, 0x95e1d3, 0xf38181, 0xaa96da, 0x3498db, 0x2ecc71, 0xf1c40f, 0xe74c3c]; 
+            const numGuitars = 12; 
             
             for (let i = 0; i < numGuitars; i++) {
                 const guitar = createGuitarShape();
                 
-                // Circular arrangement
                 const angle = (i / numGuitars) * Math.PI * 2;
-                const radius = 7; // Adjusted radius for more guitars
+                const radius = 7; 
                 guitar.position.x = Math.cos(angle) * radius;
-                guitar.position.y = Math.sin(angle) * 2.5 + 1; // Spread them out vertically too
+                guitar.position.y = Math.sin(angle) * 2.5 + 1; 
                 guitar.position.z = Math.sin(angle) * radius;
                 
-                // Random initial rotation
                 guitar.rotation.x = Math.random() * Math.PI * 2;
                 guitar.rotation.y = Math.random() * Math.PI * 2;
                 guitar.rotation.z = Math.random() * Math.PI * 2;
                 
-                // Apply glow material to the body part
                 const glowMaterial = new THREE.MeshPhongMaterial({
                     color: guitarColors[i % guitarColors.length],
                     emissive: guitarColors[i % guitarColors.length],
-                    emissiveIntensity: 0.4, // Slightly increased glow
+                    emissiveIntensity: 0.4, 
                     shininess: 90
                 });
                 
                 guitar.traverse((child) => {
-                    if (child.isMesh && child.material.color.getHex() === 0x8B4513) { // Target the brown body material
+                    if (child.isMesh && child.material.color.getHex() === 0x8B4513) { 
                         child.material = glowMaterial;
-                        child.castShadow = true; // Ensure glowing parts also cast shadow
+                        child.castShadow = true; 
                     }
                 });
                 
-                // Animation data
                 guitar.userData.velocity = new THREE.Vector3(
-                    (Math.random() - 0.5) * 0.03, // Slightly faster translational speed
+                    (Math.random() - 0.5) * 0.03, 
                     (Math.random() - 0.5) * 0.03,
                     (Math.random() - 0.5) * 0.03
                 );
                 guitar.userData.rotationSpeed = new THREE.Vector3(
-                    Math.random() * 0.015, // Slightly faster rotation
+                    Math.random() * 0.015, 
                     Math.random() * 0.015,
                     Math.random() * 0.015
                 );
                 guitar.userData.originalPosition = guitar.position.clone();
-                guitar.userData.baseScale = 0.8 + Math.random() * 0.4; // Random base scale
+                guitar.userData.baseScale = 0.8 + Math.random() * 0.4; 
                 guitar.scale.setScalar(guitar.userData.baseScale);
 
                 guitars.push(guitar);
@@ -370,7 +352,6 @@
             }
         }
 
-        // Generic function to create 3D text
         function createCustomText(textStr, color, yPos, zPos, textObjectName) {
             const textGroup = new THREE.Group();
             const letterMaterial = new THREE.MeshPhongMaterial({
@@ -380,14 +361,12 @@
                 shininess: 100
             });
             const letters = textStr.split('');
-            const letterSpacing = 2.2; // Adjusted spacing
-            const letterDepth = 0.4; // Depth of letters
+            const letterSpacing = 2.2; 
+            const letterDepth = 0.4; 
 
             letters.forEach((letter, index) => {
                 const letterGroup = new THREE.Group();
-                let geometry;
-
-                // Basic blocky letter shapes (can be improved with more complex geometries or FontLoader)
+                
                 if (letter === 'P') {
                     const vertical = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.8, letterDepth), letterMaterial);
                     vertical.position.x = -0.45;
@@ -411,25 +390,31 @@
                     const midBar = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.4, letterDepth), letterMaterial);
                     midBar.position.y = -0.1;
                     letterGroup.add(midBar);
-                    if (textObjectName === "papaText") { // Flip 'A' for PAPA
-                        letterGroup.rotation.z = Math.PI; // Rotate 180 degrees
+                    if (textObjectName === "papaText") { 
+                        letterGroup.rotation.z = Math.PI; 
                     }
                 } else if (letter === 'R') {
                     const vertical = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.8, letterDepth), letterMaterial);
-                    vertical.position.x = -0.45;
+                    vertical.position.x = -0.45; // Left vertical bar of R
                     letterGroup.add(vertical);
-                    const topBar = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.4, letterDepth), letterMaterial);
-                    topBar.position.y = 0.7; topBar.position.x = -0.05;
-                    letterGroup.add(topBar);
-                    const midBar = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.4, letterDepth), letterMaterial);
-                    midBar.position.y = 0.1; midBar.position.x = -0.05;
-                    letterGroup.add(midBar);
-                    const rightSideVertical = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.7, letterDepth), letterMaterial);
-                    rightSideVertical.position.x = 0.35; rightSideVertical.position.y = 0.4;
-                    letterGroup.add(rightSideVertical);
+                
+                    const topLoopUpper = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.4, letterDepth), letterMaterial);
+                    topLoopUpper.position.set(-0.05, 0.7, 0); // Top bar of P part
+                    letterGroup.add(topLoopUpper);
+                
+                    const topLoopLower = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.4, letterDepth), letterMaterial);
+                    topLoopLower.position.set(-0.05, 0.1, 0); // Middle bar of P part
+                    letterGroup.add(topLoopLower);
+                
+                    const topLoopRightVertical = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.7, letterDepth), letterMaterial);
+                    topLoopRightVertical.position.set(0.35, 0.4, 0); // Right vertical of P part
+                    letterGroup.add(topLoopRightVertical);
+                
                     const leg = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.0, letterDepth), letterMaterial);
-                    leg.rotation.z = -0.5; leg.position.set(0.2, -0.5, 0);
+                    leg.position.set(0.15, -0.45, 0); // Position leg to start from mid-bottom
+                    leg.rotation.z = -Math.PI / 5; // Angled leg
                     letterGroup.add(leg);
+
                 } else if (letter === 'U') {
                     const leftBar = new THREE.Mesh(new THREE.BoxGeometry(0.4, 1.8, letterDepth), letterMaterial);
                     leftBar.position.x = -0.45; leftBar.position.y = 0.1;
@@ -466,7 +451,7 @@
             
             textGroup.position.y = yPos;
             textGroup.position.z = zPos;
-            textGroup.scale.set(0.7, 0.7, 0.7); // Adjusted scale
+            textGroup.scale.set(0.7, 0.7, 0.7); 
             
             if (textObjectName === "papaText") {
                 papaText = textGroup;
@@ -479,10 +464,9 @@
         function createBabyGirl() {
             const babyGroup = new THREE.Group();
             
-            // Head
-            const headGeometry = new THREE.SphereGeometry(0.8, 24, 24); // Smoother sphere
+            const headGeometry = new THREE.SphereGeometry(0.8, 24, 24); 
             const skinMaterial = new THREE.MeshPhongMaterial({
-                color: 0xfde3d9, // Lighter skin tone
+                color: 0xfde3d9, 
                 shininess: 60
             });
             const head = new THREE.Mesh(headGeometry, skinMaterial);
@@ -490,74 +474,70 @@
             head.castShadow = true;
             babyGroup.add(head);
             
-            // Hair
-            const hairMaterial = new THREE.MeshPhongMaterial({
-                color: 0x5d4037, // Darker brown
-                shininess: 70
-            });
+            // Hair (already commented out by user based on previous instructions)
+            // const hairMaterial = new THREE.MeshPhongMaterial({
+            //     color: 0x5d4037, 
+            //     shininess: 70
+            // });
+            // const hairGeometry = new THREE.SphereGeometry(0.85, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.7); 
+            // const hair = new THREE.Mesh(hairGeometry, hairMaterial);
+            // hair.position.y = 0.65; 
+            // hair.rotation.x = -0.2; 
+            // hair.castShadow = true;
+            //babyGroup.add(hair); // Main hair
             
-            const hairGeometry = new THREE.SphereGeometry(0.85, 24, 24, 0, Math.PI * 2, 0, Math.PI * 0.7); // Cap-like hair
-            const hair = new THREE.Mesh(hairGeometry, hairMaterial);
-            hair.position.y = 0.65; // Adjusted position
-            hair.rotation.x = -0.2; // Tilt hair slightly
-            hair.castShadow = true;
-            //babyGroup.add(hair);
+            // Pigtails (already commented out by user based on previous instructions)
+            // const pigtailGeometry = new THREE.SphereGeometry(0.35, 16, 16); 
+            // const pigtail1 = new THREE.Mesh(pigtailGeometry, hairMaterial);
+            // pigtail1.position.set(-0.8, 0.9, 0.1); 
+            // pigtail1.castShadow = true;
+            //babyGroup.add(pigtail1); // Pigtail 1
             
-            // Pigtails
-            const pigtailGeometry = new THREE.SphereGeometry(0.35, 16, 16); // Slightly larger
-            const pigtail1 = new THREE.Mesh(pigtailGeometry, hairMaterial);
-            pigtail1.position.set(-0.8, 0.9, 0.1); // Adjusted position
-            pigtail1.castShadow = true;
-            //babyGroup.add(pigtail1);
+            // const pigtail2 = new THREE.Mesh(pigtailGeometry, hairMaterial);
+            // pigtail2.position.set(0.8, 0.9, 0.1); 
+            // pigtail2.castShadow = true;
+            //babyGroup.add(pigtail2); // Pigtail 2
             
-            const pigtail2 = new THREE.Mesh(pigtailGeometry, hairMaterial);
-            pigtail2.position.set(0.8, 0.9, 0.1); // Adjusted position
-            pigtail2.castShadow = true;
-            //babyGroup.add(pigtail2);
-            
-            // Bows
-            const bowMaterial = new THREE.MeshPhongMaterial({
-                color: 0xff69b4, // Hot pink
-                emissive: 0xff69b4,
-                emissiveIntensity: 0.3,
-                shininess: 80
-            });
-            
-            const bowShape = new THREE.Shape(); // Create a bow shape
-            bowShape.moveTo(-0.15, 0);
-            bowShape.bezierCurveTo(-0.25, 0.15, -0.1, 0.2, 0, 0.1);
-            bowShape.bezierCurveTo(0.1, 0.2, 0.25, 0.15, 0.15, 0);
-            bowShape.bezierCurveTo(0.25, -0.15, 0.1, -0.2, 0, -0.1);
-            bowShape.bezierCurveTo(-0.1, -0.2, -0.25, -0.15, -0.15, 0);
+            // Bows - Now also commented out
+            // const bowMaterial = new THREE.MeshPhongMaterial({
+            //     color: 0xff69b4, 
+            //     emissive: 0xff69b4,
+            //     emissiveIntensity: 0.3,
+            //     shininess: 80
+            // });
+            // const bowShape = new THREE.Shape(); 
+            // bowShape.moveTo(-0.15, 0);
+            // bowShape.bezierCurveTo(-0.25, 0.15, -0.1, 0.2, 0, 0.1);
+            // bowShape.bezierCurveTo(0.1, 0.2, 0.25, 0.15, 0.15, 0);
+            // bowShape.bezierCurveTo(0.25, -0.15, 0.1, -0.2, 0, -0.1);
+            // bowShape.bezierCurveTo(-0.1, -0.2, -0.25, -0.15, -0.15, 0);
 
-            const bowExtrudeSettings = { depth: 0.05, bevelEnabled: false };
-            const bowGeometry = new THREE.ExtrudeGeometry(bowShape, bowExtrudeSettings);
+            // const bowExtrudeSettings = { depth: 0.05, bevelEnabled: false };
+            // const bowGeometry = new THREE.ExtrudeGeometry(bowShape, bowExtrudeSettings);
 
-            const bow1 = new THREE.Mesh(bowGeometry, bowMaterial);
-            bow1.position.set(-0.8, 1.05, 0.3); // Adjusted position
-            bow1.rotation.z = -0.2;
-            bow1.castShadow = true;
-            //babyGroup.add(bow1);
+            // const bow1 = new THREE.Mesh(bowGeometry, bowMaterial);
+            // bow1.position.set(-0.8, 1.05, 0.3); 
+            // bow1.rotation.z = -0.2;
+            // bow1.castShadow = true;
+            //babyGroup.add(bow1); // Bow 1
             
-            const bow2 = new THREE.Mesh(bowGeometry, bowMaterial);
-            bow2.position.set(0.8, 1.05, 0.3); // Adjusted position
-            bow2.rotation.z = 0.2;
-            bow2.castShadow = true;
-            //babyGroup.add(bow2);
+            // const bow2 = new THREE.Mesh(bowGeometry, bowMaterial);
+            // bow2.position.set(0.8, 1.05, 0.3); 
+            // bow2.rotation.z = 0.2;
+            // bow2.castShadow = true;
+            //babyGroup.add(bow2); // Bow 2
             
-            // Eyes
-            const eyeGeometry = new THREE.SphereGeometry(0.1, 12, 12); // Slightly larger
-            const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 }); // Dark grey
+            const eyeGeometry = new THREE.SphereGeometry(0.1, 12, 12); 
+            const eyeMaterial = new THREE.MeshBasicMaterial({ color: 0x333333 }); 
             
             const eye1 = new THREE.Mesh(eyeGeometry, eyeMaterial);
-            eye1.position.set(-0.25, 0.65, 0.7); // Adjusted position
+            eye1.position.set(-0.25, 0.65, 0.7); 
             babyGroup.add(eye1);
             
             const eye2 = new THREE.Mesh(eyeGeometry, eyeMaterial);
-            eye2.position.set(0.25, 0.65, 0.7); // Adjusted position
+            eye2.position.set(0.25, 0.65, 0.7); 
             babyGroup.add(eye2);
 
-            // Eye highlights
             const highlightGeometry = new THREE.SphereGeometry(0.03, 8, 8);
             const highlightMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
             const highlight1 = new THREE.Mesh(highlightGeometry, highlightMaterial);
@@ -567,48 +547,45 @@
             highlight2.position.set(0.28, 0.68, 0.75);
             babyGroup.add(highlight2);
 
-            // Smile
             const smileCurve = new THREE.CatmullRomCurve3([
                 new THREE.Vector3(-0.2, 0.3, 0.75),
                 new THREE.Vector3(0, 0.2, 0.75),
                 new THREE.Vector3(0.2, 0.3, 0.75)
             ]);
             const smileGeometry = new THREE.TubeGeometry(smileCurve, 8, 0.03, 8, false);
-            const smileMaterial = new THREE.MeshBasicMaterial({ color: 0xe55c6c }); // Rosy smile
+            const smileMaterial = new THREE.MeshBasicMaterial({ color: 0xe55c6c }); 
             const smile = new THREE.Mesh(smileGeometry, smileMaterial);
             babyGroup.add(smile);
             
-            // Body/Dress
-            const dressGeometry = new THREE.ConeGeometry(0.9, 1.6, 24, 1, false, 0, Math.PI * 2); // Smoother cone
+            const dressGeometry = new THREE.ConeGeometry(0.9, 1.6, 24, 1, false, 0, Math.PI * 2); 
             const dressMaterial = new THREE.MeshPhongMaterial({
-                color: 0x87ceeb, // Sky blue dress
+                color: 0x87ceeb, 
                 emissive: 0x87ceeb,
                 emissiveIntensity: 0.15,
                 shininess: 70
             });
             const dress = new THREE.Mesh(dressGeometry, dressMaterial);
-            dress.position.y = -0.85; // Adjusted position
+            dress.position.y = -0.85; 
             dress.castShadow = true;
             babyGroup.add(dress);
             
-            // Arms
-            const armGeometry = new THREE.CylinderGeometry(0.18, 0.15, 0.7, 12); // Tapered arms
+            const armGeometry = new THREE.CylinderGeometry(0.18, 0.15, 0.7, 12); 
             const arm1 = new THREE.Mesh(armGeometry, skinMaterial);
-            arm1.position.set(-0.6, -0.2, 0.1); // Adjusted position
-            arm1.rotation.z = 0.7; // Waving arm
+            arm1.position.set(-0.6, -0.2, 0.1); 
+            arm1.rotation.z = 0.7; 
             arm1.rotation.x = -0.3;
             arm1.castShadow = true;
             babyGroup.add(arm1);
             
             const arm2 = new THREE.Mesh(armGeometry, skinMaterial);
-            arm2.position.set(0.6, -0.2, 0.1); // Adjusted position
-            arm2.rotation.z = -0.7; // Waving arm
+            arm2.position.set(0.6, -0.2, 0.1); 
+            arm2.rotation.z = -0.7; 
             arm2.rotation.x = -0.3;
             arm2.castShadow = true;
             babyGroup.add(arm2);
             
-            babyGroup.position.set(0, -2.5, 2.5); // Adjusted position
-            babyGroup.scale.set(1.3, 1.3, 1.3); // Slightly larger
+            babyGroup.position.set(0, -2.5, 2.5); 
+            babyGroup.scale.set(1.3, 1.3, 1.3); 
             
             babyGirl = babyGroup;
             scene.add(babyGirl);
@@ -618,15 +595,15 @@
             const starsGeometry = new THREE.BufferGeometry();
             const starsMaterial = new THREE.PointsMaterial({
                 color: 0xffffff,
-                size: 0.15, // Slightly larger stars
+                size: 0.15, 
                 transparent: true,
                 opacity: 0.9,
-                sizeAttenuation: true // Stars further away appear smaller
+                sizeAttenuation: true 
             });
             
             const starsVertices = [];
-            for (let i = 0; i < 800; i++) { // More stars
-                const x = (Math.random() - 0.5) * 100; // Wider spread
+            for (let i = 0; i < 800; i++) { 
+                const x = (Math.random() - 0.5) * 100; 
                 const y = (Math.random() - 0.5) * 100;
                 const z = (Math.random() - 0.5) * 100;
                 starsVertices.push(x, y, z);
@@ -639,32 +616,31 @@
         
         function setupTouchControls() {
             const canvas = renderer.domElement;
-            let isDragging = false; // To differentiate between tap and drag for audio play
+            let isDragging = false; 
             
             canvas.addEventListener('touchstart', (e) => {
-                // e.preventDefault(); // Only prevent default if actually dragging
                 isDragging = false;
                 if (e.touches.length === 1) {
                     touchStartX = e.touches[0].clientX;
                     touchStartY = e.touches[0].clientY;
                 } else if (e.touches.length === 2) {
-                    e.preventDefault(); // Prevent default for pinch zoom
+                    e.preventDefault(); 
                     const dx = e.touches[0].clientX - e.touches[1].clientX;
                     const dy = e.touches[0].clientY - e.touches[1].clientY;
                     pinchStartDistance = Math.sqrt(dx * dx + dy * dy);
-                    initialCameraZ = camera.position.z; // Store current camera z for relative zoom
+                    initialCameraZ = camera.position.z; 
                 }
-            }, { passive: false }); // passive: false to allow preventDefault
+            }, { passive: false }); 
             
             canvas.addEventListener('touchmove', (e) => {
-                isDragging = true; // If touchmove occurs, it's a drag
-                e.preventDefault(); // Prevent scrolling while dragging/pinching
+                isDragging = true; 
+                e.preventDefault(); 
                 
                 if (e.touches.length === 1) {
                     const deltaX = e.touches[0].clientX - touchStartX;
                     const deltaY = e.touches[0].clientY - touchStartY;
                     
-                    targetRotationY += deltaX * 0.008; // Slower rotation
+                    targetRotationY += deltaX * 0.008; 
                     targetRotationX += deltaY * 0.008;
                     
                     touchStartX = e.touches[0].clientX;
@@ -675,20 +651,19 @@
                     const distance = Math.sqrt(dx * dx + dy * dy);
                     
                     const scale = distance / pinchStartDistance;
-                    camera.position.z = Math.max(8, Math.min(50, initialCameraZ / scale)); // Zoom limits
+                    camera.position.z = Math.max(8, Math.min(50, initialCameraZ / scale)); 
                 }
             }, { passive: false });
 
             canvas.addEventListener('touchend', (e) => {
                 if (e.touches.length === 0 && !isDragging) {
-                    // This could be a tap, but play button is separate
+                    // Tap
                 }
                 if (e.touches.length < 2) {
-                    pinchStartDistance = 0; // Reset pinch distance
+                    pinchStartDistance = 0; 
                 }
             });
             
-            // Mouse events for desktop
             let mouseDown = false;
             let lastMouseX = 0;
             let lastMouseY = 0;
@@ -707,7 +682,7 @@
                 const deltaX = e.clientX - lastMouseX;
                 const deltaY = e.clientY - lastMouseY;
                 
-                targetRotationY += deltaX * 0.005; // Slower mouse rotation
+                targetRotationY += deltaX * 0.005; 
                 targetRotationX += deltaY * 0.005;
 
                 lastMouseX = e.clientX;
@@ -716,20 +691,17 @@
             
             canvas.addEventListener('wheel', (e) => {
                 e.preventDefault();
-                camera.position.z += e.deltaY * 0.02; // Adjusted scroll speed
-                camera.position.z = Math.max(8, Math.min(50, camera.position.z)); // Zoom limits
+                camera.position.z += e.deltaY * 0.02; 
+                camera.position.z = Math.max(8, Math.min(50, camera.position.z)); 
             }, { passive: false });
         }
         
         function loadAudio() {
-            // Try to initialize AudioContext on first user interaction (e.g., play button click)
-            // This is often required by modern browsers.
             const playButton = document.getElementById('playBtn');
             playButton.onclick = () => {
                 if (!audioContext) {
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 }
-                // Resume context if it's suspended
                 if (audioContext.state === 'suspended') {
                     audioContext.resume();
                 }
@@ -737,15 +709,14 @@
                 if (!isPlaying && audioBuffer) {
                     playAudio();
                 } else if (!audioBuffer) {
-                    // If buffer not loaded yet, try loading now
                     fetchAudioAndPlay();
                 }
             };
-            fetchAudioAndPlay(false); // Attempt to load audio initially, but don't autoplay
+            fetchAudioAndPlay(false); 
         }
 
         function fetchAudioAndPlay(shouldPlay = true) {
-             if (audioBuffer) { // If already loaded
+             if (audioBuffer) { 
                 if(shouldPlay && !isPlaying) playAudio();
                 return;
             }
@@ -753,15 +724,15 @@
             const loadingScreen = document.getElementById('loadingScreen');
             const playButton = document.getElementById('playBtn');
 
-            fetch('https://cdn.glitch.global/20d3a2dd-116c-42a4-9545-9a07bffc2cfc/papa.mp3?v=1716999990000') // Example: Using a publicly available track for testing if 'papa.mp3' fails
+            fetch('papa.mp3') // Changed to local path
                 .then(response => {
                     if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(`HTTP error! status: ${response.status} - Make sure papa.mp3 is in the same directory.`);
                     }
                     return response.arrayBuffer();
                 })
                 .then(data => {
-                    if (!audioContext) { // Ensure audio context is initialized
+                    if (!audioContext) { 
                          audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     }
                     audioContext.decodeAudioData(data, (buffer) => {
@@ -774,7 +745,7 @@
                         if (shouldPlay) {
                             playAudio();
                         }
-                    }, (e) => { // Error decoding audio data
+                    }, (e) => { 
                         console.error('Error decoding audio data', e);
                         if (loadingScreen.style.display !== 'none') {
                            loadingScreen.style.display = 'none';
@@ -795,16 +766,16 @@
         
         function playAudio() {
             if (!audioBuffer || isPlaying || !audioContext) return;
-            if (audioContext.state === 'suspended') { // Ensure context is running
+            if (audioContext.state === 'suspended') { 
                 audioContext.resume();
             }
             
             audioSource = audioContext.createBufferSource();
             audioSource.buffer = audioBuffer;
-            audioSource.loop = true; // Loop the music
+            audioSource.loop = true; 
             
             analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256; // Standard FFT size
+            analyser.fftSize = 256; 
             audioData = new Uint8Array(analyser.frequencyBinCount);
             
             audioSource.connect(analyser);
@@ -815,7 +786,6 @@
             
             document.getElementById('playBtn').textContent = '🎵 Musik läuft...';
             
-            // Update audio data for visualization
             function updateAudioDataLoop() {
                 if (isPlaying && analyser) {
                     analyser.getByteFrequencyData(audioData);
@@ -824,7 +794,7 @@
             }
             updateAudioDataLoop();
             
-            audioSource.onended = () => { // Will only trigger if loop is false
+            audioSource.onended = () => { 
                 isPlaying = false;
                 document.getElementById('playBtn').textContent = '🎵 Nochmal abspielen';
             };
@@ -832,18 +802,14 @@
         
         function animate() {
             requestAnimationFrame(animate);
-            const time = Date.now() * 0.001; // Time for smooth animations
+            const time = Date.now() * 0.001; 
             
-            // Animate guitars
             guitars.forEach((guitar, index) => {
                 guitar.position.add(guitar.userData.velocity);
                 
-                // Boundaries - more gentle bounce
-                const maxDistance = 10; // Increased boundary
+                const maxDistance = 10; 
                 if (guitar.position.length() > maxDistance) {
-                    // Reverse velocity and slightly dampen
                     guitar.userData.velocity.multiplyScalar(-0.95);
-                    // Ensure it's pushed back within bounds if it overshoots significantly
                     guitar.position.normalize().multiplyScalar(maxDistance * 0.98);
                 }
                 
@@ -851,47 +817,43 @@
                 guitar.rotation.y += guitar.userData.rotationSpeed.y;
                 guitar.rotation.z += guitar.userData.rotationSpeed.z;
                 
-                // Audio reactivity
                 if (analyser && audioData && audioData.length > 0) {
-                    const freqIndex = Math.floor((index / guitars.length) * (audioData.length / 2)); // Map guitar index to a frequency band
-                    const frequency = audioData[freqIndex] / 255; // Normalize
-                    const scaleMultiplier = 1 + frequency * 0.6; // Stronger reaction
+                    const freqIndex = Math.floor((index / guitars.length) * (audioData.length / 2)); 
+                    const frequency = audioData[freqIndex] / 255; 
+                    const scaleMultiplier = 1 + frequency * 0.6; 
                     guitar.scale.setScalar(guitar.userData.baseScale * scaleMultiplier);
                     
-                    // Subtle position bobbing with audio
                     guitar.position.x = guitar.userData.originalPosition.x + Math.sin(time + index) * 0.5 + frequency * (Math.random()-0.5) * 2;
                     guitar.position.y = guitar.userData.originalPosition.y + Math.cos(time + index) * 0.5 + frequency * (Math.random()-0.5) * 2;
                 } else {
-                    guitar.scale.setScalar(guitar.userData.baseScale); // Default scale if no audio
+                    guitar.scale.setScalar(guitar.userData.baseScale); 
                 }
             });
             
-            // Animate Papa text
             if (papaText) {
-                papaText.rotation.y = Math.sin(time * 0.5) * 0.3; // Gentle sway
-                papaText.position.y = 4 + Math.sin(time * 0.8) * 0.6; // Bobbing motion
+                papaText.rotation.y = Math.sin(time * 0.5) * 0.3; 
+                papaText.position.y = 4 + Math.sin(time * 0.8) * 0.6; 
                 
                 if (analyser && audioData && audioData.length > 0) {
                     const avgFrequency = audioData.reduce((a, b) => a + b, 0) / audioData.length / 255;
-                    const scale = 0.7 + avgFrequency * 0.4; // Text scales with overall volume
+                    const scale = 0.7 + avgFrequency * 0.4; 
                     papaText.scale.set(scale, scale, scale);
                     
                     papaText.traverse((child) => {
                         if (child.isMesh && child.material.emissiveIntensity !== undefined) {
-                            child.material.emissiveIntensity = 0.6 + avgFrequency * 0.8; // Glow with volume
+                            child.material.emissiveIntensity = 0.6 + avgFrequency * 0.8; 
                         }
                     });
                 }
             }
 
-            // Animate Rudi text
              if (rudiText) {
-                rudiText.rotation.y = Math.cos(time * 0.6) * 0.4; // Different sway
-                rudiText.position.y = -4 + Math.cos(time * 0.7) * 0.7; // Different bobbing
-                rudiText.position.x = Math.sin(time * 0.3) * 3; // Whoosh side to side
+                rudiText.rotation.y = Math.cos(time * 0.6) * 0.4; 
+                rudiText.position.y = -4 + Math.cos(time * 0.7) * 0.7; 
+                rudiText.position.x = Math.sin(time * 0.3) * 3; 
 
                 if (analyser && audioData && audioData.length > 0) {
-                    const highFrequency = audioData[Math.floor(audioData.length * 0.75)] / 255; // React to higher frequencies
+                    const highFrequency = audioData[Math.floor(audioData.length * 0.75)] / 255; 
                     const scale = 0.7 + highFrequency * 0.35;
                     rudiText.scale.set(scale, scale, scale);
                     
@@ -903,34 +865,30 @@
                 }
             }
             
-            // Animate baby girl
             if (babyGirl) {
-                babyGirl.rotation.y = Math.sin(time * 0.8) * 0.25; // Gentle turn
-                babyGirl.position.x = Math.sin(time * 0.5) * 0.8; // Side to side sway
+                babyGirl.rotation.y = Math.sin(time * 0.8) * 0.25; 
+                babyGirl.position.x = Math.sin(time * 0.5) * 0.8; 
                 
                 if (analyser && audioData && audioData.length > 0) {
-                    const bassFrequency = audioData[5] / 255; // React to a low-mid frequency
+                    const bassFrequency = audioData[5] / 255; 
                     const midFrequency = audioData[Math.floor(audioData.length / 3)] / 255;
                     
-                    babyGirl.position.y = -2.5 + Math.abs(Math.sin(time * 2.5)) * bassFrequency * 1.5; // Jumping/dancing
-                    babyGirl.rotation.z = Math.sin(time * 3) * midFrequency * 0.35; // Tilting
+                    babyGirl.position.y = -2.5 + Math.abs(Math.sin(time * 2.5)) * bassFrequency * 1.5; 
+                    babyGirl.rotation.z = Math.sin(time * 3) * midFrequency * 0.35; 
                     
-                    const scale = 1.3 + bassFrequency * 0.25; // Pulsate with bass
+                    const scale = 1.3 + bassFrequency * 0.25; 
                     babyGirl.scale.set(scale, scale, scale);
                 }
             }
             
-            // Smooth camera rotation
-            scene.rotation.y += (targetRotationY - scene.rotation.y) * 0.08; // Smoother damping
+            scene.rotation.y += (targetRotationY - scene.rotation.y) * 0.08; 
             scene.rotation.x += (targetRotationX - scene.rotation.x) * 0.08;
             
-            // Clamp scene rotation to avoid extreme angles
-            scene.rotation.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 6, scene.rotation.x)); // Limit up/down look
+            scene.rotation.x = Math.max(-Math.PI / 4, Math.min(Math.PI / 6, scene.rotation.x)); 
             
             renderer.render(scene, camera);
         }
         
-        // Handle window resize
         function onWindowResize() {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
@@ -940,15 +898,12 @@
         
         window.addEventListener('resize', onWindowResize);
         
-        // Prevent default gesture zoom on iOS, but allow pinch on canvas for our controls
         document.addEventListener('gesturestart', (e) => {
-             if (e.target !== renderer.domElement) { // Only prevent default if not on canvas
+             if (e.target !== renderer.domElement) { 
                 e.preventDefault();
             }
         }, { passive: false });
         
-        // Initialize and start animation loop
-        // Wait for the DOM to be fully loaded before initializing Three.js
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 init();
