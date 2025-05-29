@@ -537,13 +537,13 @@
             bow1.position.set(-0.8, 1.05, 0.3); // Adjusted position
             bow1.rotation.z = -0.2;
             bow1.castShadow = true;
-            babyGroup.add(bow1);
+            //babyGroup.add(bow1);
             
             const bow2 = new THREE.Mesh(bowGeometry, bowMaterial);
             bow2.position.set(0.8, 1.05, 0.3); // Adjusted position
             bow2.rotation.z = 0.2;
             bow2.castShadow = true;
-            babyGroup.add(bow2);
+            //babyGroup.add(bow2);
             
             // Eyes
             const eyeGeometry = new THREE.SphereGeometry(0.1, 12, 12); // Slightly larger
@@ -753,7 +753,7 @@
             const loadingScreen = document.getElementById('loadingScreen');
             const playButton = document.getElementById('playBtn');
 
-            fetch('https://cdn.glitch.global/20d3a2dd-116c-42a4-9545-9a07bffc2cfc/papa_short_loop.mp3?v=1716999990000') // Example: Using a publicly available track for testing if 'papa.mp3' fails
+            fetch('https://cdn.glitch.global/20d3a2dd-116c-42a4-9545-9a07bffc2cfc/papa.mp3?v=1716999990000') // Example: Using a publicly available track for testing if 'papa.mp3' fails
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
