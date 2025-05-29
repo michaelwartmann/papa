@@ -501,19 +501,19 @@
             hair.position.y = 0.65; // Adjusted position
             hair.rotation.x = -0.2; // Tilt hair slightly
             hair.castShadow = true;
-            babyGroup.add(hair);
+            //babyGroup.add(hair);
             
             // Pigtails
             const pigtailGeometry = new THREE.SphereGeometry(0.35, 16, 16); // Slightly larger
             const pigtail1 = new THREE.Mesh(pigtailGeometry, hairMaterial);
             pigtail1.position.set(-0.8, 0.9, 0.1); // Adjusted position
             pigtail1.castShadow = true;
-            babyGroup.add(pigtail1);
+            //babyGroup.add(pigtail1);
             
             const pigtail2 = new THREE.Mesh(pigtailGeometry, hairMaterial);
             pigtail2.position.set(0.8, 0.9, 0.1); // Adjusted position
             pigtail2.castShadow = true;
-            babyGroup.add(pigtail2);
+            //babyGroup.add(pigtail2);
             
             // Bows
             const bowMaterial = new THREE.MeshPhongMaterial({
