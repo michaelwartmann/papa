@@ -1,84 +1,316 @@
 <!DOCTYPE html>
-<html lang="de"> <!-- Specifies the language as German -->
+<html lang="de">
 <head>
-    <meta charset="UTF-8"> <!-- Sets the character encoding to UTF-8 -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"> <!-- Sets the viewport for responsive design -->
-    <title>Herzlichen Glückwunsch Papa! - Goethe Erlebnis</title> <!-- Title of the webpage -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alles Gute zum Vatertag, Papa!</title>
     <style>
-        /* Basic styling for the body */
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh; /* Full height of the viewport */
-            margin: 0; /* Removes default margin */
-            background-color: #f0f0f0; /* Light gray background */
-            font-family: Arial, sans-serif;
-            overflow: hidden; /* Prevents scrolling */
-        }
-        /* Styling for the starter page */
-        #starterPage {
-            text-align: center;
-            padding: 20px;
-        }
-        /* Styling for the image */
-        .birthday-image {
-            max-width: 200px; /* Set maximum width to fit nicely */
-            border-radius: 10px; /* Rounded corners */
-            margin-bottom: 20px; /* Space below the image */
-        }
-        /* Styling for all buttons */
-        .button {
-            padding: 15px 30px;
-            font-size: 18px;
-            background-color: #007bff; /* Blue background */
+        body { margin: 0; overflow: hidden; font-family: 'Arial', sans-serif; background-color: #f0f0f0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; color: #333; }
+        #scene-container { width: 90vw; height: 75vh; max-width: 1000px; max-height: 700px; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.2); background-color: #e0e0ff; /* Light lavender background for the scene */ }
+        canvas { display: block; border-radius: 15px; }
+        .controls { margin-top: 20px; padding: 10px; background-color: #fff; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); text-align: center;}
+        .controls button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #4CAF50; /* Green */
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .controls button:hover {
+            background-color: #45a049;
+        }
+        .info-text {
             margin-top: 10px;
-            display: block;
-            text-decoration: none;
-            text-align: center;
-            width: 220px; /* Set a fixed width for uniform button size */
-        }
-        .musicButton {
-            background-color: #ffc107; /* Yellow background for music button */
-        }
-        /* Center the buttons container */
-        .buttons-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            font-size: 14px;
+            color: #555;
         }
     </style>
 </head>
 <body>
-    <!-- Starter Page Container -->
-    <div id="starterPage">
-        <img src="papa_michi.jpg" alt="Papa" class="birthday-image"> <!-- Display the birthday image -->
-        <h1>🎉 Herzlichen Glückwunsch zum Geburtstag, Papa! 🎉</h1> <!-- Birthday message -->
-        <p>Genieße die Zitate von Goethe und entdecke seine Werke!</p> <!-- Intro message -->
-        <div class="buttons-container">
-            <button class="button musicButton" onclick="playMusic()">Musik Abspielen</button> <!-- Button to play music -->
-            <a href="quotes.html" class="button">Goethe Zitate</a> <!-- Link to quotes page -->
-            <a href="poems.html" class="button">Goethe Gedichte</a> <!-- Link to quotes page -->
-            <a href="reader.html" class="button">Goethes Werke lesen</a> <!-- Link to ebook reader page -->
-        </div>
-        <audio id="birthdaySong" src="bday.mp3" loop></audio> <!-- Birthday song audio -->
+    <h1>Alles Gute zum Vatertag!</h1>
+    <div id="scene-container"></div>
+    <div class="controls">
+        <audio id="vatertagsMusik" src="papa.mp3" loop></audio>
+        <button id="playPauseButton">Musik Abspielen</button>
+        <p class="info-text">Klicke und ziehe, um die Szene zu drehen. Scrolle, um zu zoomen.</p>
+        <p class="info-text">Ersetze "DEINE_MUSIKDATEI.mp3" im Code mit dem Pfad zu deiner Musik.</p>
     </div>
 
-    <script>
-        const birthdaySong = document.getElementById('birthdaySong');
+    <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js" type="module"></script>
+    <script type="module">
+        // Import necessary modules from Three.js
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js';
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/controls/OrbitControls.js';
+        import { FontLoader } from 'https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/loaders/FontLoader.js';
+        import { TextGeometry } from 'https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/geometries/TextGeometry.js';
 
-        // Function to play the birthday music
-        function playMusic() {
-            birthdaySong.volume = 0.3; // Set volume for soft playback
-            birthdaySong.play().catch((error) => {
-                console.log('Autoplay failed due to browser restrictions:', error);
+        let scene, camera, renderer, controls;
+        const guitars = [];
+        const boundingBoxSize = 10; // Defines the cube within which guitars bounce
+
+        // Initialize the scene, camera, and renderer
+        function init() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x87CEEB); // Sky blue background
+
+            // Camera setup
+            camera = new THREE.PerspectiveCamera(75, getAspectRatio(), 0.1, 1000);
+            camera.position.set(0, 5, 15);
+
+            // Renderer setup
+            const container = document.getElementById('scene-container');
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true; // Enable shadows
+            container.appendChild(renderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.8); // Soft white light
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+            directionalLight.position.set(5, 10, 7.5);
+            directionalLight.castShadow = true;
+            // Configure shadow properties for better quality
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            directionalLight.shadow.camera.near = 0.5;
+            directionalLight.shadow.camera.far = 50;
+            scene.add(directionalLight);
+            
+            // OrbitControls for camera interaction
+            controls = new OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
+            controls.dampingFactor = 0.05;
+            controls.screenSpacePanning = false;
+            controls.minDistance = 5;
+            controls.maxDistance = 50;
+            controls.maxPolarAngle = Math.PI / 2;
+
+
+            // Create elements
+            createGuitars(15);
+            createPapaText();
+            createBabyGirl();
+            createFloor(); // Add a floor for context and shadows
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize, false);
+
+            // Start animation loop
+            animate();
+        }
+
+        function getAspectRatio() {
+            const container = document.getElementById('scene-container');
+            return container.clientWidth / container.clientHeight;
+        }
+
+        // Create a simple representation of a guitar
+        function createGuitarShape() {
+            const shape = new THREE.Shape();
+            // Body
+            shape.moveTo(-1, -2);
+            shape.bezierCurveTo(-1.5, -1, -1.5, 1, -1, 2);
+            shape.lineTo(-0.5, 2);
+            shape.bezierCurveTo(0, 2.5, 1, 2.5, 1.5, 2); // bottom curve
+            shape.lineTo(1.5, 2);
+            shape.bezierCurveTo(2, 1, 2, -1, 1.5, -2);
+            shape.lineTo(1.5, -2);
+            shape.lineTo(0.5, -2.2); // slight indent
+            shape.lineTo(-0.5, -2.2);
+            shape.lineTo(-1, -2);
+
+            // Neck
+            shape.moveTo(-0.3, 2);
+            shape.lineTo(-0.2, 4);
+            shape.lineTo(0.2, 4);
+            shape.lineTo(0.3, 2);
+            shape.lineTo(-0.3, 2);
+            
+            return shape;
+        }
+
+        // Create multiple guitar objects
+        function createGuitars(count) {
+            const guitarGeometry = new THREE.ExtrudeGeometry(createGuitarShape(), { depth: 0.2, bevelEnabled: false });
+            
+            for (let i = 0; i < count; i++) {
+                const guitarMaterial = new THREE.MeshStandardMaterial({
+                    color: new THREE.Color(Math.random() * 0xffffff),
+                    roughness: 0.5,
+                    metalness: 0.3
+                });
+                const guitar = new THREE.Mesh(guitarGeometry, guitarMaterial);
+
+                // Random initial position
+                guitar.position.set(
+                    (Math.random() - 0.5) * boundingBoxSize,
+                    (Math.random() - 0.5) * boundingBoxSize * 0.5 + boundingBoxSize * 0.25, // Keep them somewhat above floor
+                    (Math.random() - 0.5) * boundingBoxSize
+                );
+                // Random initial rotation
+                guitar.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+                guitar.scale.set(0.5, 0.5, 0.5); // Scale down guitars
+
+                // Custom property for velocity
+                guitar.velocity = new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.1,
+                    (Math.random() - 0.5) * 0.1,
+                    (Math.random() - 0.5) * 0.1
+                );
+                guitar.castShadow = true;
+                guitar.receiveShadow = true;
+                guitars.push(guitar);
+                scene.add(guitar);
+            }
+        }
+
+        // Create the "Papa" 3D text
+        function createPapaText() {
+            const fontLoader = new FontLoader();
+            fontLoader.load('https://cdn.jsdelivr.net/npm/three@0.164.1/examples/fonts/helvetiker_bold.typeface.json', function (font) {
+                const textGeometry = new TextGeometry('Papa', {
+                    font: font,
+                    size: 2,
+                    height: 0.5,
+                    curveSegments: 12,
+                    bevelEnabled: true,
+                    bevelThickness: 0.1,
+                    bevelSize: 0.05,
+                    bevelOffset: 0,
+                    bevelSegments: 5
+                });
+                textGeometry.center(); // Center the text geometry
+
+                const textMaterial = new THREE.MeshStandardMaterial({ color: 0xff4500, roughness: 0.3, metalness: 0.2 }); // OrangeRed
+                const papaText = new THREE.Mesh(textGeometry, textMaterial);
+                papaText.position.set(0, 6, 0); // Position it above
+                papaText.castShadow = true;
+                papaText.receiveShadow = true;
+                scene.add(papaText);
             });
         }
+
+        // Create a simple representation of a baby girl
+        function createBabyGirl() {
+            const group = new THREE.Group();
+
+            // Body (simple cylinder or sphere)
+            const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xffc0cb, roughness: 0.7, metalness: 0.1 }); // Pink
+            const bodyGeometry = new THREE.SphereGeometry(0.8, 32, 16);
+            const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            body.position.y = 0.8; // Lift body
+            body.castShadow = true;
+            body.receiveShadow = true;
+            group.add(body);
+
+            // Head
+            const headGeometry = new THREE.SphereGeometry(0.5, 32, 16);
+            const head = new THREE.Mesh(headGeometry, bodyMaterial); // Same pink material
+            head.position.y = 1.9; // Position head on top of body
+            head.castShadow = true;
+            head.receiveShadow = true;
+            group.add(head);
+            
+            // Position the baby girl
+            group.position.set(4, 0, 4); // Example position
+            group.scale.set(1.5, 1.5, 1.5);
+            scene.add(group);
+        }
+
+        // Create a floor plane
+        function createFloor() {
+            const floorGeometry = new THREE.PlaneGeometry(20, 20);
+            const floorMaterial = new THREE.MeshStandardMaterial({ color: 0x90ee90, side: THREE.DoubleSide, roughness: 0.8 }); // LightGreen
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2; // Rotate to be horizontal
+            floor.position.y = -boundingBoxSize / 4; // Position it below the bouncing area slightly
+            floor.receiveShadow = true; // Floor should receive shadows
+            scene.add(floor);
+        }
+
+        // Handle window resize events
+        function onWindowResize() {
+            const container = document.getElementById('scene-container');
+            camera.aspect = getAspectRatio();
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const halfBox = boundingBoxSize / 2;
+            const floorLevel = -boundingBoxSize / 4 + 0.25; // Guitar half-height roughly
+
+            // Animate guitars (molecular motion)
+            guitars.forEach(guitar => {
+                guitar.position.add(guitar.velocity);
+                guitar.rotation.x += guitar.velocity.x * 0.1;
+                guitar.rotation.y += guitar.velocity.y * 0.1;
+
+                // Bounce off walls
+                if (guitar.position.x > halfBox || guitar.position.x < -halfBox) {
+                    guitar.velocity.x *= -1;
+                    guitar.position.x = Math.max(-halfBox, Math.min(halfBox, guitar.position.x)); // clamp
+                }
+                if (guitar.position.z > halfBox || guitar.position.z < -halfBox) {
+                    guitar.velocity.z *= -1;
+                    guitar.position.z = Math.max(-halfBox, Math.min(halfBox, guitar.position.z)); // clamp
+                }
+                // Bounce off floor and ceiling (adjusted for floor level)
+                if (guitar.position.y > (halfBox * 0.5 + boundingBoxSize * 0.25) || guitar.position.y < floorLevel) {
+                    guitar.velocity.y *= -1;
+                    guitar.position.y = Math.max(floorLevel, Math.min((halfBox * 0.5 + boundingBoxSize * 0.25), guitar.position.y)); // clamp
+                }
+            });
+
+            controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
+            renderer.render(scene, camera);
+        }
+
+        // Music controls
+        const audio = document.getElementById('vatertagsMusik');
+        const playPauseButton = document.getElementById('playPauseButton');
+        let isPlaying = false;
+
+        playPauseButton.addEventListener('click', () => {
+            if (isPlaying) {
+                audio.pause();
+                playPauseButton.textContent = 'Musik Abspielen';
+            } else {
+                audio.play().catch(error => console.error("Error playing audio:", error)); // Catch potential errors
+                playPauseButton.textContent = 'Musik Pausieren';
+            }
+            isPlaying = !isPlaying;
+        });
+        
+        // Check if audio can be played (useful for some browsers with autoplay policies)
+        audio.oncanplaythrough = () => {
+            // You could enable the button here if it was initially disabled
+            console.log("Audio kann abgespielt werden.");
+        };
+        audio.onerror = (e) => {
+            console.error("Fehler beim Laden der Audiodatei:", e);
+            playPauseButton.textContent = 'Audio Fehler';
+            playPauseButton.disabled = true;
+            const controlsDiv = document.querySelector('.controls');
+            const errorMsg = document.createElement('p');
+            errorMsg.textContent = 'Fehler: Audiodatei nicht gefunden oder Format nicht unterstützt. Bitte überprüfe den Pfad "DEINE_MUSIKDATEI.mp3" im Code.';
+            errorMsg.style.color = 'red';
+            controlsDiv.appendChild(errorMsg);
+        };
+
+
+        // Initialize everything
+        init();
     </script>
 </body>
 </html>
